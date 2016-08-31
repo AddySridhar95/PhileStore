@@ -8,13 +8,15 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,34 +30,35 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Log.d("MainActivity", Environment.getExternalStorageState());
-
         path = new File(Environment.getExternalStorageDirectory().toString());
-
-        // Log.d("main_activity", path.getAbsolutePath());
-
-        // Log.d("MainActivity", path.exists() ? "File exists" : "File doesn't exist");
-
-//        try {
-//            Boolean result = path.mkdirs();
-//            Log.d("MainActivity", result ? "Success" : "Failure");
-//        } catch (SecurityException e) {
-//            Log.d("MainActivity", "SECURITY EXCEPTION");
-//        }
 
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
+        // TODO check for the case when permissions are required: are the files loaded prematurely?
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         } else {
             loadFiles();
         }
 
-        Log.d("MainActivity", "Loaded files " + files.length);
         ListView lview = (ListView) findViewById(R.id.list_view);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.list_item, files);
         lview.setAdapter(adapter);
+
+        lview.setOnItemClickListener(new OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
+                Log.d("MainActivity", "clicked");
+                if (position <= files.length - 1 && position >= 0) {
+                    Log.d("MainActivity", "item clicked is " + files[position]);
+                } else {
+                    Log.d("MainActivityERROR", "item clicked is out of bounds");
+                }
+            }
+
+        });
     }
 
     @Override
