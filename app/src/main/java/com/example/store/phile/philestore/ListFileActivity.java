@@ -42,6 +42,8 @@ public class ListFileActivity extends ListActivity {
 
         loadFiles();
 
+        // TODO: set content view to empty files view if files.length == 0 here
+
         ListView lview = (ListView) findViewById(android.R.id.list);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.list_item, files);
@@ -50,9 +52,6 @@ public class ListFileActivity extends ListActivity {
 
     protected void onListItemClick(ListView l, View v, int position, long id) {
 
-        // TODO: fire intent to restart this activity only if the item selected is a directory.
-        // TODO: If its a file, fire an intent to open the file
-
         String filename = files[position];
         if (path.toString().endsWith(File.separator)) {
             filename = path.toString() + filename;
@@ -60,9 +59,17 @@ public class ListFileActivity extends ListActivity {
             filename = path.toString() + File.separator + filename;
         }
 
-        Intent i = new Intent(this, ListFileActivity.class);
-        i.putExtra("path", filename);
-        startActivity(i);
+        File fileClicked = new File(filename);
+
+        if (fileClicked.isDirectory()) {
+            Intent i = new Intent(this, ListFileActivity.class);
+            i.putExtra("path", filename);
+            startActivity(i);
+        }
+
+        if (fileClicked.isFile()) {
+            // TODO: fire intent to open file
+        }
     }
 
     public void loadFiles() {
@@ -71,20 +78,10 @@ public class ListFileActivity extends ListActivity {
             public boolean accept(File dir, String filename) {
                 File sel = new File(dir, filename);
                 // Filters based on whether the file is hidden or not
-                return (sel.isFile() || sel.isDirectory())
-                        && !sel.isHidden();
-
+                return (sel.isFile() || sel.isDirectory()) && !sel.isHidden();
             }
         };
 
         files = path.list(filter);
-
-        if (files == null) {
-            Log.d("MainActivity", "SD files is null");
-        } else {
-            for(int i = 0; i < files.length; i++) {
-                Log.d("MainActivity", files[i]);
-            }
-        }
     }
 }
