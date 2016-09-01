@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StatFs;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -32,7 +36,7 @@ public class ListFileActivity extends ListActivity {
         super.onCreate(savedInstanceState);
 
         // TODO rename this to something else
-        setContentView(R.layout.activity_main);
+        // setContentView(R.layout.list_folder_items);
 
         Bundle extras = getIntent().getExtras();
 
@@ -45,43 +49,52 @@ public class ListFileActivity extends ListActivity {
         loadFiles();
 
         // TODO: set content view to empty files view if files.length == 0 here
-        ListView lview = (ListView) findViewById(android.R.id.list);
-
-        ArrayAdapter<FileListItem> adapter = new ArrayAdapter<FileListItem>(this, R.layout.list_item, fileItems) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                // assign the view we are converting to a local variable
-                View v = convertView;
-
-                // first check to see if the view is null. if so, we have to inflate it.
-                // to inflate it basically means to render, or show, the view.
-                if (v == null) {
-                    LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    v = inflater.inflate(R.layout.list_item, null);
-                }
-
-                FileListItem item = fileItems.get(position);
-                File file = new File(item.getFilePath() + item.getFileName());
-
-                Date lastModifiedDate = new Date(file.lastModified());
-
-                ImageView iconImg = (ImageView) v.findViewById(R.id.list_icon);
-                iconImg.setImageResource(R.drawable.file_48_48);
-
-                if (file.isDirectory()) {
-                    iconImg.setImageResource(R.drawable.folder_48_48);
-                }
-
-                TextView headerText = (TextView) v.findViewById(R.id.list_heading);
-                headerText.setText(item.getFileName());
-                TextView dateText = (TextView) v.findViewById(R.id.list_date_created);
-                SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm");
-                dateText.setText(sdf.format(lastModifiedDate));
-
-                return v;
-            }
-        };
-        lview.setAdapter(adapter);
+//        ListView lview = (ListView) findViewById(R.id.list_view);
+//
+//        ArrayAdapter<FileListItem> adapter = new ArrayAdapter<FileListItem>(this, R.layout.list_item, fileItems) {
+//            @Override
+//            public View getView(int position, View convertView, ViewGroup parent) {
+//                // assign the view we are converting to a local variable
+//                View v = convertView;
+//
+//                // first check to see if the view is null. if so, we have to inflate it.
+//                // to inflate it basically means to render, or show, the view.
+//                if (v == null) {
+//                    LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//                    v = inflater.inflate(R.layout.list_item, null);
+//                }
+//
+//                FileListItem item = fileItems.get(position);
+//                File file = new File(item.getFilePath() + item.getFileName());
+//
+//
+//                ImageView iconImg = (ImageView) v.findViewById(R.id.list_icon);
+//                iconImg.setImageResource(R.drawable.file_48_48);
+//                if (file.isDirectory()) {
+//                    iconImg.setImageResource(R.drawable.folder_48_48);
+//                }
+//
+//                TextView headerText = (TextView) v.findViewById(R.id.list_heading);
+//                headerText.setText(item.getFileName());
+//
+//                Date lastModifiedDate = new Date(file.lastModified());
+//                TextView dateText = (TextView) v.findViewById(R.id.list_date_created);
+//                SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm");
+//                dateText.setText(sdf.format(lastModifiedDate));
+//
+////                Log.d("MainAc", item.getFilePath() + item.getFileName());
+////                StatFs stat = new StatFs(item.getFilePath() + item.getFileName());
+////                long bytesAvailable = stat.getBlockSizeLong() * stat.getBlockCountLong();
+////
+////                TextView sizeText = (TextView) v.findViewById(R.id.list_size);
+////                // String formattedSize = Formatter.formatShortFileSize(getContext(), bytesAvailable);
+////                Log.d("MAINACTIVITY", bytesAvailable + "");
+////                sizeText.setText(bytesAvailable / 1048576 + "");
+//
+//                return v;
+//            }
+//        };
+//        lview.setAdapter(adapter);
     }
 
     protected void onListItemClick(ListView l, View v, int position, long id) {
