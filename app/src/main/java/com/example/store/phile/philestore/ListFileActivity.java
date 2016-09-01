@@ -1,33 +1,31 @@
 package com.example.store.phile.philestore;
 
-import android.Manifest;
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by adityasridhar on 16-08-31.
  */
 public class ListFileActivity extends ListActivity {
     private File path;
-    private String[] files;
+    private ArrayList<FileListItem> fileItems = new ArrayList<FileListItem>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +45,9 @@ public class ListFileActivity extends ListActivity {
         loadFiles();
 
         // TODO: set content view to empty files view if files.length == 0 here
-
         ListView lview = (ListView) findViewById(android.R.id.list);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.list_item, files) {
+        ArrayAdapter<FileListItem> adapter = new ArrayAdapter<FileListItem>(this, R.layout.list_item, fileItems) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 // assign the view we are converting to a local variable
@@ -63,12 +60,23 @@ public class ListFileActivity extends ListActivity {
                     v = inflater.inflate(R.layout.list_item, null);
                 }
 
-                String item = files[position];
+                FileListItem item = fileItems.get(position);
+                File file = new File(item.getFilePath() + item.getFileName());
 
-                TextView text1 = (TextView) v.findViewById(android.R.id.text1);
-                text1.setText("abc");
-                TextView text2 = (TextView) v.findViewById(android.R.id.text2);
-                text2.setText(item);
+                Date lastModifiedDate = new Date(file.lastModified());
+
+                ImageView iconImg = (ImageView) v.findViewById(R.id.list_icon);
+                iconImg.setImageResource(R.drawable.file_48_48);
+
+                if (file.isDirectory()) {
+                    iconImg.setImageResource(R.drawable.folder_48_48);
+                }
+
+                TextView headerText = (TextView) v.findViewById(R.id.list_heading);
+                headerText.setText(item.getFileName());
+                TextView dateText = (TextView) v.findViewById(R.id.list_date_created);
+                SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm");
+                dateText.setText(sdf.format(lastModifiedDate));
 
                 return v;
             }
@@ -78,18 +86,13 @@ public class ListFileActivity extends ListActivity {
 
     protected void onListItemClick(ListView l, View v, int position, long id) {
 
-        String filename = files[position];
-        if (path.toString().endsWith(File.separator)) {
-            filename = path.toString() + filename;
-        } else {
-            filename = path.toString() + File.separator + filename;
-        }
-
-        File fileClicked = new File(filename);
+        FileListItem fileListItemClicked = fileItems.get(position);
+        String fullFilePath = fileListItemClicked.getFilePath() + fileListItemClicked.getFileName();
+        File fileClicked = new File(fullFilePath);
 
         if (fileClicked.isDirectory()) {
             Intent i = new Intent(this, ListFileActivity.class);
-            i.putExtra("path", filename);
+            i.putExtra("path", fullFilePath);
             startActivity(i);
         }
 
@@ -108,6 +111,15 @@ public class ListFileActivity extends ListActivity {
             }
         };
 
-        files = path.list(filter);
+        String[] files = path.list(filter);
+        for(int i = 0; i < files.length; i++) {
+            String filePath = path.toString();
+            if (!filePath.endsWith(File.separator)) {
+                filePath = filePath + File.separator;
+            }
+            // Log.d("MainActivity", filePath + files[i]);
+            FileListItem fileListItem = new FileListItem(files[i], filePath);
+            fileItems.add(fileListItem);
+        }
     }
 }
