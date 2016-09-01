@@ -3,6 +3,7 @@ package com.example.store.phile.philestore;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -10,10 +11,13 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -46,7 +50,29 @@ public class ListFileActivity extends ListActivity {
 
         ListView lview = (ListView) findViewById(android.R.id.list);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.list_item, files);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.list_item, files) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                // assign the view we are converting to a local variable
+                View v = convertView;
+
+                // first check to see if the view is null. if so, we have to inflate it.
+                // to inflate it basically means to render, or show, the view.
+                if (v == null) {
+                    LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    v = inflater.inflate(R.layout.list_item, null);
+                }
+
+                String item = files[position];
+
+                TextView text1 = (TextView) v.findViewById(android.R.id.text1);
+                text1.setText("abc");
+                TextView text2 = (TextView) v.findViewById(android.R.id.text2);
+                text2.setText(item);
+
+                return v;
+            }
+        };
         lview.setAdapter(adapter);
     }
 

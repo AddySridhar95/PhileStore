@@ -17,6 +17,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         // TODO check for the case when permissions are required: are the files loaded prematurely?
