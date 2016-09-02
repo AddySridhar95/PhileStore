@@ -17,36 +17,48 @@ import android.util.Log;
 import android.support.v7.widget.Toolbar;
 
 import java.io.File;
+import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements ListFileFragment.OnFileItemSelectedListener {
+/*
+  Goal:
+  When no item selected, more options icon in tool bar should render normal options (Sort, About, Group by)
+  When item(s) selected, more options icon in tool bar should render selected items options (Rename, Delete)
+
+  Investigate:
+    1) using a fragment/activity for more options
+    2) when to exit selected items view
+
+ */
+
+
+public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener {
 
     private String path = Environment.getExternalStorageDirectory().toString();
+    private ArrayList<Integer> itemsSelected = new ArrayList<>();
 
-    public void onPathChange(String p) {
-//        path = p;
-//
-//        Log.d("MainActivity", "onPathChange " + p);
-//        FragmentManager fm = getSupportFragmentManager();
-//
-//        FragmentTransaction ft = fm.beginTransaction();
-//
-//        ListFileFragment fragment = (ListFileFragment) fm.findFragmentById(R.id.list_fragment);
-//
-//
-//        fragment.setPath(path);
-//        ft.addToBackStack(null);
-//        ft.commit();
-    }
 
     public String getFullPath() {
         return path;
     }
 
+    public ArrayList<Integer> getItemsSelected() {
+        return itemsSelected;
+    }
+
     @Override
-    public void onFileItemSelected(String p) {
+    public void onFileItemClicked(String p) {
         // set private path variable
         path = p;
+        restartListFragment();
+    }
 
+    @Override
+    public void onFileItemSelected(int pos) {
+        itemsSelected.add(pos);
+        restartListFragment();
+    }
+
+    private void restartListFragment() {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         ListFileFragment fragment = (ListFileFragment) fm.findFragmentByTag("pho_tag");
@@ -118,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
             }
 
-            onFileItemSelected(newPath);
+            onFileItemClicked(newPath);
         }
 
         // return true;

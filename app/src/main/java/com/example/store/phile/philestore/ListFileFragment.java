@@ -28,8 +28,9 @@ public class ListFileFragment extends ListFragment {
     private ArrayAdapter<FileListItem> adapter;
 
     private Activity mAct;
-    public interface OnFileItemSelectedListener{
-        public void onFileItemSelected(String itemPath);
+    public interface FileActionsListener{
+        public void onFileItemClicked(String itemPath);
+        public void onFileItemSelected(int pos);
     }
 
     @Override
@@ -48,6 +49,8 @@ public class ListFileFragment extends ListFragment {
         adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileItems) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
+
+                Log.d("ListFileFragment", "GetView isss called");
                 // assign the view we are converting to a local variable
                 View v = convertView;
 
@@ -68,12 +71,21 @@ public class ListFileFragment extends ListFragment {
                     iconImg.setImageResource(R.drawable.folder_48_48);
                 }
 
+                if (mAct != null && ((MainActivity)mAct).getItemsSelected() != null && ((MainActivity)mAct).getItemsSelected().size() > 0) {
+                    // HACK: this only ticks the first selected item
+                    if (((MainActivity)mAct).getItemsSelected().get(0) == position) {
+                        iconImg.setImageResource(R.drawable.tick_48_48);
+                    }
+                } else {
+                    Log.d("ListFileFragment", "mAct is NULLLL");
+                }
+
                 TextView headerText = (TextView) v.findViewById(R.id.list_heading);
                 headerText.setText(item.getFileName());
 
                 Date lastModifiedDate = new Date(file.lastModified());
                 TextView dateText = (TextView) v.findViewById(R.id.list_date_created);
-                SimpleDateFormat sdf = new SimpleDateFormat("dd MMM, yyyy hh:mm a");
+                SimpleDateFormat sdf = new SimpleDateFormat("dd MMM, yyyy"); // hh:mm a
                 dateText.setText(sdf.format(lastModifiedDate));
 
                 return v;
@@ -90,9 +102,9 @@ public class ListFileFragment extends ListFragment {
                 File fileClicked = new File(fullFilePath);
 
                 if (fileClicked.isDirectory()) {
-                    try{
-                        ((OnFileItemSelectedListener) mAct).onFileItemSelected(fullFilePath);
-                    }catch (ClassCastException cce){
+                    try {
+                        ((FileActionsListener) mAct).onFileItemClicked(fullFilePath);
+                    } catch (ClassCastException cce) {
 
                     }
                 }
@@ -100,6 +112,20 @@ public class ListFileFragment extends ListFragment {
                 if (fileClicked.isFile()) {
                     // TODO: fire intent to open file
                 }
+            }
+        });
+
+        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                try {
+                    ((FileActionsListener) mAct).onFileItemSelected(position);
+                } catch (ClassCastException cce) {
+
+                }
+
+                // TODO: why does it return true
+                return true;
             }
         });
     }
@@ -118,8 +144,6 @@ public class ListFileFragment extends ListFragment {
         String p = Environment.getExternalStorageDirectory().toString();
         if (mAct != null && ((MainActivity)mAct).getFullPath() != null) {
             p = ((MainActivity)mAct).getFullPath();
-        } else {
-            Log.d("ListFileFragment", "mAct is NULLLL");
         }
 
         FilenameFilter filter = new FilenameFilter() {
@@ -144,8 +168,6 @@ public class ListFileFragment extends ListFragment {
 
             FileListItem fileListItem = new FileListItem(files[i], parentPath);
             fileItems.add(fileListItem);
-            // adapter.notifyDataSetChanged();
         }
-
     }
 }
