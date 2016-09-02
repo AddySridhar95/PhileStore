@@ -6,6 +6,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -15,27 +16,42 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
 
-import java.util.List;
+import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ListFileFragment.OnFileItemSelectedListener {
 
-    private String path;
+    private String path = Environment.getExternalStorageDirectory().toString();
 
     public void onPathChange(String p) {
+//        path = p;
+//
+//        Log.d("MainActivity", "onPathChange " + p);
+//        FragmentManager fm = getSupportFragmentManager();
+//
+//        FragmentTransaction ft = fm.beginTransaction();
+//
+//        ListFileFragment fragment = (ListFileFragment) fm.findFragmentById(R.id.list_fragment);
+//
+//
+//        fragment.setPath(path);
+//        ft.addToBackStack(null);
+//        ft.commit();
+    }
+
+    public String getFullPath() {
+        return path;
+    }
+
+    @Override
+    public void onFileItemSelected(String p) {
+        // set private path variable
         path = p;
 
-        Log.d("MainActivity", "onPathChange " + p);
         FragmentManager fm = getSupportFragmentManager();
-
         FragmentTransaction ft = fm.beginTransaction();
+        ListFileFragment fragment = (ListFileFragment) fm.findFragmentByTag("pho_tag");
 
-        ListFileFragment fragment = (ListFileFragment) fm.findFragmentById(R.id.list_fragment);
-
-
-        fragment.setPath(path);
-//        ft.detach(fragment);
-//        ft.attach(fragment);
-        ft.addToBackStack(null);
+        ft.detach(fragment).attach(fragment);
         ft.commit();
     }
 
@@ -44,6 +60,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        ListFileFragment frag = new ListFileFragment();
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().add(R.id.fragment_container, frag, "pho_tag").commit();
+
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
@@ -80,6 +101,27 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        String base_path = Environment.getExternalStorageDirectory().toString();
+        Log.d("ABCDDDD", path + " & " + base_path);
+        if (path == base_path) {
+            // super.onBackPressed();
+            // TODO: navigate to main view
+        } else {
+            String newPath = "";
+            if (path.length() > base_path.length()) {
+                for (int i = 0; i < path.split(File.separator).length - 1; i++) {
+                    newPath = newPath + File.separator + path.split(File.separator)[i];
+                }
+            }
+
+            onFileItemSelected(newPath);
+        }
+
+        // return true;
     }
 
 //    private void fireListFilesIntent() {

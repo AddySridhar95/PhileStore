@@ -1,5 +1,6 @@
 package com.example.store.phile.philestore;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
@@ -24,25 +25,27 @@ import java.util.Date;
  */
 public class ListFileFragment extends ListFragment {
     private ArrayList<FileListItem> fileItems = new ArrayList<FileListItem>();
-    private String path = Environment.getExternalStorageDirectory().toString();;
     private ArrayAdapter<FileListItem> adapter;
+
+    private Activity mAct;
+    public interface OnFileItemSelectedListener{
+        public void onFileItemSelected(String itemPath);
+    }
+
+    @Override
+    public void onAttach(Context c)
+    {
+        super.onAttach(c);
+        mAct = c instanceof Activity ? (Activity) c : null;
+
+        Log.d("ListFileFragment", mAct == null ? "is null" : "not null");
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        return inflater.inflate(R.layout.list_file_fragment, container, false);
-    }
-
-    @Override
-    public void onViewCreated (View view, Bundle savedInstanceState) {
-        Log.d("ListFileFragment", "onViewCreated");
-
-        adapter = new ArrayAdapter<FileListItem>(getActivity(), R.layout.list_item, fileItems) {
+        adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileItems) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 // assign the view we are converting to a local variable
@@ -88,8 +91,11 @@ public class ListFileFragment extends ListFragment {
 
                 if (fileClicked.isDirectory()) {
                     Log.d("ListFileFragment", "list clicked");
-                    MainActivity mainAct = (MainActivity) getActivity();
-                    mainAct.onPathChange(fullFilePath);
+                    try{
+                        ((OnFileItemSelectedListener) mAct).onFileItemSelected(fullFilePath);
+                    }catch (ClassCastException cce){
+
+                    }
                 }
 
                 if (fileClicked.isFile()) {
@@ -97,11 +103,29 @@ public class ListFileFragment extends ListFragment {
                 }
             }
         });
-
-        loadFiles(path);
     }
 
-    public void loadFiles(String p) {
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        return inflater.inflate(R.layout.list_file_fragment, container, false);
+    }
+
+    @Override
+    public void onViewCreated (View view, Bundle savedInstanceState) {
+        Log.d("MAIN CRAP", getActivity() == null ? "nulll" : "nottt nulll");
+        loadFiles();
+    }
+
+    public void loadFiles() {
+        Log.d("ListFraggg", "load files calledddddd");
+        String p = Environment.getExternalStorageDirectory().toString();
+        if (mAct != null && ((MainActivity)mAct).getFullPath() != null) {
+            p = ((MainActivity)mAct).getFullPath();
+        } else {
+            Log.d("ListFileFragment", "mAct is NULLLL");
+        }
+
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {
@@ -113,9 +137,8 @@ public class ListFileFragment extends ListFragment {
         };
 
         fileItems.clear();
-        adapter.notifyDataSetChanged();
         String[] files = (new File(p)).list(filter);
-
+        Log.d("FILESSSS", files == null ? "files is null" : "is notttt null");
         for(int i = 0; i < files.length; i++) {
 
             // parentPath is the path of the directory the file in question is in.
@@ -126,17 +149,17 @@ public class ListFileFragment extends ListFragment {
 
             FileListItem fileListItem = new FileListItem(files[i], parentPath);
             fileItems.add(fileListItem);
-            adapter.notifyDataSetChanged();
+            // adapter.notifyDataSetChanged();
         }
 
     }
 
-    public void setPath(final String p) {
-        getActivity().runOnUiThread(new Runnable() {
-            public void run() {
-                path = p;
-                loadFiles(p);
-            }
-        });
-    }
+//    public void setPath(final String p) {
+//        getActivity().runOnUiThread(new Runnable() {
+//            public void run() {
+//                path = p;
+//                loadFiles(p);
+//            }
+//        });
+//    }
 }
