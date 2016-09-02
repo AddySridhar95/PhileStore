@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
@@ -32,8 +33,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         fragment.setPath(path);
-        ft.detach(fragment);
-        ft.attach(fragment);
+//        ft.detach(fragment);
+//        ft.attach(fragment);
+        ft.addToBackStack(null);
         ft.commit();
     }
 
