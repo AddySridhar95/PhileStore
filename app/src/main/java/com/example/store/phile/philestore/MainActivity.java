@@ -106,9 +106,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     @Override
     public void onBackPressed() {
         String base_path = Environment.getExternalStorageDirectory().toString();
-        Log.d("ABCDDDD", path + " & " + base_path);
+
         if (path == base_path) {
-            // super.onBackPressed();
+            super.onBackPressed();
             // TODO: navigate to main view
         } else {
             String newPath = "";

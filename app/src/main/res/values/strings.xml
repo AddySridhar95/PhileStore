@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PhileStore</string>
+    <string name="no_file_items">Nothing here</string>
     <string name="action_settings">Settings</string>
 </resources>
