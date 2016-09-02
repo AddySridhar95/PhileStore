@@ -63,7 +63,7 @@ public class ListFileFragment extends ListFragment {
                 File file = new File(item.getFilePath() + item.getFileName());
 
                 ImageView iconImg = (ImageView) v.findViewById(R.id.list_icon);
-                iconImg.setImageResource(R.drawable.file_48_48);
+                iconImg.setImageResource(R.drawable.blank_48_48);
                 if (file.isDirectory()) {
                     iconImg.setImageResource(R.drawable.folder_48_48);
                 }
@@ -73,7 +73,7 @@ public class ListFileFragment extends ListFragment {
 
                 Date lastModifiedDate = new Date(file.lastModified());
                 TextView dateText = (TextView) v.findViewById(R.id.list_date_created);
-                SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm");
+                SimpleDateFormat sdf = new SimpleDateFormat("dd MMM, yyyy hh:mm a");
                 dateText.setText(sdf.format(lastModifiedDate));
 
                 return v;
@@ -90,7 +90,6 @@ public class ListFileFragment extends ListFragment {
                 File fileClicked = new File(fullFilePath);
 
                 if (fileClicked.isDirectory()) {
-                    Log.d("ListFileFragment", "list clicked");
                     try{
                         ((OnFileItemSelectedListener) mAct).onFileItemSelected(fullFilePath);
                     }catch (ClassCastException cce){
@@ -107,18 +106,15 @@ public class ListFileFragment extends ListFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         return inflater.inflate(R.layout.list_file_fragment, container, false);
     }
 
     @Override
     public void onViewCreated (View view, Bundle savedInstanceState) {
-        Log.d("MAIN CRAP", getActivity() == null ? "nulll" : "nottt nulll");
         loadFiles();
     }
 
     public void loadFiles() {
-        Log.d("ListFraggg", "load files calledddddd");
         String p = Environment.getExternalStorageDirectory().toString();
         if (mAct != null && ((MainActivity)mAct).getFullPath() != null) {
             p = ((MainActivity)mAct).getFullPath();
@@ -138,7 +134,6 @@ public class ListFileFragment extends ListFragment {
 
         fileItems.clear();
         String[] files = (new File(p)).list(filter);
-        Log.d("FILESSSS", files == null ? "files is null" : "is notttt null");
         for(int i = 0; i < files.length; i++) {
 
             // parentPath is the path of the directory the file in question is in.
@@ -153,13 +148,4 @@ public class ListFileFragment extends ListFragment {
         }
 
     }
-
-//    public void setPath(final String p) {
-//        getActivity().runOnUiThread(new Runnable() {
-//            public void run() {
-//                path = p;
-//                loadFiles(p);
-//            }
-//        });
-//    }
 }
