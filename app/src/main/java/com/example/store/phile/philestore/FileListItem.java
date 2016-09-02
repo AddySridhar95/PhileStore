@@ -1,5 +1,7 @@
 package com.example.store.phile.philestore;
 
+import android.os.Parcelable;
+
 /**
  * Created by adityasridhar on 16-09-01.
  */

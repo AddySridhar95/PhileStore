@@ -1,6 +1,8 @@
 package com.example.store.phile.philestore;
 
 import android.Manifest;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -11,6 +13,18 @@ import android.util.Log;
 import android.support.v7.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
+
+    private String path;
+
+    public void onPathChange(String p) {
+        path = p;
+        Log.d("MainActivity", "Path chagne");
+//        Fragment frg = getFragmentManager().findFragmentById(R.id.list_fragment);
+//        FragmentTransaction ft = getFragmentManager().beginTransaction();
+//        ft.detach(frg);
+//        ft.attach(frg);
+//        ft.commit();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         } else {
-            fireListFilesIntent();
+            // fireListFilesIntent();
         }
     }
 
@@ -55,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void fireListFilesIntent() {
-        Intent i = new Intent(this, ListFileActivity.class);
-        startActivity(i);
-    }
+//    private void fireListFilesIntent() {
+//        Intent i = new Intent(this, ListFileFragment.class);
+//        startActivity(i);
+//    }
 }
