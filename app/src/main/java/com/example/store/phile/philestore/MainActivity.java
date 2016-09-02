@@ -1,16 +1,20 @@
 package com.example.store.phile.philestore;
 
 import android.Manifest;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
+
+
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,12 +22,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void onPathChange(String p) {
         path = p;
-        Log.d("MainActivity", "Path chagne");
-//        Fragment frg = getFragmentManager().findFragmentById(R.id.list_fragment);
-//        FragmentTransaction ft = getFragmentManager().beginTransaction();
-//        ft.detach(frg);
-//        ft.attach(frg);
-//        ft.commit();
+
+        Log.d("MainActivity", "onPathChange " + p);
+        FragmentManager fm = getSupportFragmentManager();
+
+        FragmentTransaction ft = fm.beginTransaction();
+
+        ListFileFragment fragment = (ListFileFragment) fm.findFragmentById(R.id.list_fragment);
+
+
+        fragment.setPath(path);
+        ft.detach(fragment);
+        ft.attach(fragment);
+        ft.commit();
     }
 
     @Override

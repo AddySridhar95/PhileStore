@@ -1,17 +1,16 @@
 package com.example.store.phile.philestore;
 
-import android.app.ListFragment;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
@@ -25,14 +24,25 @@ import java.util.Date;
  */
 public class ListFileFragment extends ListFragment {
     private ArrayList<FileListItem> fileItems = new ArrayList<FileListItem>();
-    private String path;
-
+    private String path = Environment.getExternalStorageDirectory().toString();;
+    private ArrayAdapter<FileListItem> adapter;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+    }
 
-        ArrayAdapter<FileListItem> adapter = new ArrayAdapter<FileListItem>(getActivity(), R.layout.list_item, fileItems) {
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        return inflater.inflate(R.layout.list_file_fragment, container, false);
+    }
+
+    @Override
+    public void onViewCreated (View view, Bundle savedInstanceState) {
+        Log.d("ListFileFragment", "onViewCreated");
+
+        adapter = new ArrayAdapter<FileListItem>(getActivity(), R.layout.list_item, fileItems) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 // assign the view we are converting to a local variable
@@ -63,20 +73,12 @@ public class ListFileFragment extends ListFragment {
                 SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm");
                 dateText.setText(sdf.format(lastModifiedDate));
 
-//                Log.d("MainAc", item.getFilePath() + item.getFileName());
-//                StatFs stat = new StatFs(item.getFilePath() + item.getFileName());
-//                long bytesAvailable = stat.getBlockSizeLong() * stat.getBlockCountLong();
-//
-//                TextView sizeText = (TextView) v.findViewById(R.id.list_size);
-//                // String formattedSize = Formatter.formatShortFileSize(getContext(), bytesAvailable);
-//                Log.d("MAINACTIVITY", bytesAvailable + "");
-//                sizeText.setText(bytesAvailable / 1048576 + "");
-
                 return v;
             }
         };
 
         setListAdapter(adapter);
+
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -85,11 +87,9 @@ public class ListFileFragment extends ListFragment {
                 File fileClicked = new File(fullFilePath);
 
                 if (fileClicked.isDirectory()) {
+                    Log.d("ListFileFragment", "list clicked");
                     MainActivity mainAct = (MainActivity) getActivity();
                     mainAct.onPathChange(fullFilePath);
-//                    Intent i = new Intent(this, ListFileFragment.class);
-//                    i.putExtra("path", fullFilePath);
-//                    startActivity(i);
                 }
 
                 if (fileClicked.isFile()) {
@@ -97,23 +97,11 @@ public class ListFileFragment extends ListFragment {
                 }
             }
         });
+
+        loadFiles(path);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        if (getArguments() != null && getArguments().getString("path") != null) {
-            path = getArguments().getString("path");
-        } else {
-            path = Environment.getExternalStorageDirectory().toString();
-        }
-
-        loadFiles();
-
-        return inflater.inflate(R.layout.list_file_fragment, container, false);
-    }
-
-    public void loadFiles() {
+    public void loadFiles(String p) {
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {
@@ -124,18 +112,31 @@ public class ListFileFragment extends ListFragment {
             }
         };
 
-        String[] files = (new File(path)).list(filter);
+        fileItems.clear();
+        adapter.notifyDataSetChanged();
+        String[] files = (new File(p)).list(filter);
 
         for(int i = 0; i < files.length; i++) {
 
             // parentPath is the path of the directory the file in question is in.
-            String parentPath = path;
+            String parentPath = p;
             if (!parentPath.endsWith(File.separator)) {
                 parentPath = parentPath + File.separator;
             }
 
             FileListItem fileListItem = new FileListItem(files[i], parentPath);
             fileItems.add(fileListItem);
+            adapter.notifyDataSetChanged();
         }
+
+    }
+
+    public void setPath(final String p) {
+        getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                path = p;
+                loadFiles(p);
+            }
+        });
     }
 }
