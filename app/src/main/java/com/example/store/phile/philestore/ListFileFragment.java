@@ -69,11 +69,11 @@ public class ListFileFragment extends ListFragment {
                 // Set list icon image
                 ImageView iconImg = (ImageView) v.findViewById(R.id.list_icon);
                 if (item.getIsSelected()) {
-                    iconImg.setImageResource(R.drawable.tick_48_48);
+                    iconImg.setImageResource(R.drawable.checkmark_512_512);
                 } else {
-                    iconImg.setImageResource(R.drawable.blank_48_48);
+                    iconImg.setImageResource(R.drawable.file_512_512);
                     if (file.isDirectory()) {
-                        iconImg.setImageResource(R.drawable.folder_48_48);
+                        iconImg.setImageResource(R.drawable.folder_512_512);
                     }
                 }
 

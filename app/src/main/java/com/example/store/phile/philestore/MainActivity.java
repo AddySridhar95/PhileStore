@@ -11,30 +11,19 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
-
-/*
-  Goal:
-  When no item selected, more options icon in tool bar should render normal options (Sort, About, Group by)
-  When item(s) selected, more options icon in tool bar should render selected items options (Rename, Delete)
-
-  Investigate:
-    1) using a fragment/activity for more options
-    2) when to exit selected items view
-
- */
 
 
 public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener {
 
     private String path = Environment.getExternalStorageDirectory().toString();
     private ArrayList<FileListItem> fileListItems = new ArrayList<>();
+    private Toolbar myToolbar;
 
-    // TODO: does it make more sense for main activity to have an arraylist of FileListItems? think about sort case
-    // TODO: maybe FileListItem object can keep track of whether the item has been selected or not
     private void prepareFileItemsFromPath() {
         FilenameFilter filter = new FilenameFilter() {
             @Override
@@ -76,11 +65,23 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     @Override
     public void onFileItemSelected(int pos) {
         FileListItem fileItemSelected = fileListItems.get(pos);
-        fileItemSelected.setIsSelected(true);
+        fileItemSelected.setIsSelected(!fileItemSelected.getIsSelected());
         restartListFragment();
     }
 
+    private void setToolbarStyles() {
+        if (noFileItemsSelected() > 0) {
+            myToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
+            myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarSelected));
+        } else {
+            myToolbar.setNavigationIcon(null);
+            myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarDefault));
+        }
+    }
+
     private void restartListFragment() {
+        setToolbarStyles();
+
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         ListFileFragment fragment = (ListFileFragment) fm.findFragmentByTag("pho_tag");
@@ -89,13 +90,24 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         ft.commit();
     }
 
+    private int noFileItemsSelected() {
+        int num = 0;
+        for (int i = 0; i < fileListItems.size(); i++) {
+            if (fileListItems.get(i).getIsSelected()) {
+                num++;
+            }
+        }
+
+        return num;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // populate file items list based on path
         prepareFileItemsFromPath();
-        
+
         setContentView(R.layout.activity_main);
 
         // Initialize fragment to display file list
@@ -104,8 +116,18 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         fm.beginTransaction().add(R.id.fragment_container, frag, "pho_tag").commit();
 
         // Initialize toolbar
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setToolbarStyles();
         setSupportActionBar(myToolbar);
+        myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i = 0; i < fileListItems.size(); i++) {
+                    fileListItems.get(i).setIsSelected(false);
+                    restartListFragment();
+                }
+            }
+        });
     }
 
     @Override
