@@ -8,11 +8,13 @@ import android.os.Parcelable;
 public class FileListItem {
     private String fileName;
     private String filePath;
+    private boolean isSelected;
     // private Image img;
 
     FileListItem(String fName, String fPath) {
         fileName = fName;
         filePath = fPath;
+        isSelected = false;
     }
 
     public String getFileName() {
@@ -21,6 +23,14 @@ public class FileListItem {
 
     public String getFilePath() {
         return filePath;
+    }
+
+    public boolean getIsSelected() {
+        return isSelected;
+    }
+
+    public void setIsSelected(boolean s) {
+        isSelected = s;
     }
 
     @Override

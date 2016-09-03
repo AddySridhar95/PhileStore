@@ -1,14 +1,10 @@
 package com.example.store.phile.philestore;
 
 import android.Manifest;
-
-
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
@@ -17,6 +13,7 @@ import android.util.Log;
 import android.support.v7.widget.Toolbar;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 
 /*
@@ -34,27 +31,52 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener {
 
     private String path = Environment.getExternalStorageDirectory().toString();
-    private ArrayList<Integer> itemsSelected = new ArrayList<>();
+    private ArrayList<FileListItem> fileListItems = new ArrayList<>();
 
+    // TODO: does it make more sense for main activity to have an arraylist of FileListItems? think about sort case
+    // TODO: maybe FileListItem object can keep track of whether the item has been selected or not
+    private void prepareFileItemsFromPath() {
+        FilenameFilter filter = new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                File sel = new File(dir, filename);
 
-    public String getFullPath() {
-        return path;
+                // Filters based on whether the file is hidden or not
+                return (sel.isFile() || sel.isDirectory()) && !sel.isHidden();
+            }
+        };
+
+        fileListItems.clear();
+        String[] files = (new File(path)).list(filter);
+        for(int i = 0; i < files.length; i++) {
+
+            // parentPath is the path of the directory the file in question is in.
+            String parentPath = path;
+            if (!parentPath.endsWith(File.separator)) {
+                parentPath = parentPath + File.separator;
+            }
+
+            FileListItem fileListItem = new FileListItem(files[i], parentPath);
+            fileListItems.add(fileListItem);
+        }
     }
 
-    public ArrayList<Integer> getItemsSelected() {
-        return itemsSelected;
+    public ArrayList<FileListItem> getFileListItems() {
+        return fileListItems;
     }
 
     @Override
     public void onFileItemClicked(String p) {
         // set private path variable
         path = p;
+        prepareFileItemsFromPath();
         restartListFragment();
     }
 
     @Override
     public void onFileItemSelected(int pos) {
-        itemsSelected.add(pos);
+        FileListItem fileItemSelected = fileListItems.get(pos);
+        fileItemSelected.setIsSelected(true);
         restartListFragment();
     }
 
@@ -71,13 +93,17 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // populate file items list based on path
+        prepareFileItemsFromPath();
+        
         setContentView(R.layout.activity_main);
 
+        // Initialize fragment to display file list
         ListFileFragment frag = new ListFileFragment();
         FragmentManager fm = getSupportFragmentManager();
         fm.beginTransaction().add(R.id.fragment_container, frag, "pho_tag").commit();
 
-
+        // Initialize toolbar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
     }
@@ -132,12 +158,5 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
             onFileItemClicked(newPath);
         }
-
-        // return true;
     }
-
-//    private void fireListFilesIntent() {
-//        Intent i = new Intent(this, ListFileFragment.class);
-//        startActivity(i);
-//    }
 }
