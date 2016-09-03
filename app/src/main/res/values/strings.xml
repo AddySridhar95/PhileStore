@@ -1,5 +1,12 @@
 <resources>
     <string name="app_name">PhileStore</string>
     <string name="no_file_items">Nothing here</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_group_by">Group by</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_properties">Properties</string>
+    <string name="action_move">Move</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_compress">Compress</string>
 </resources>

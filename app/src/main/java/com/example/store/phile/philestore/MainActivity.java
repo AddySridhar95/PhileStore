@@ -12,7 +12,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -77,8 +79,58 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return true;
     }
 
+    /*
+      Test the following cases:
+      1) target file DOES exists
+      2) from file does not exist
+     */
+    private boolean renameFile(File from, File to) {
+        return from.exists() && from.getParentFile().exists() && !to.exists() && from.renameTo(to);
+    }
+
+    private boolean deleteFile(File file) {
+        return file.exists() && file.delete();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_rename:
+                FileListItem toBeRenamed = getFileItemsSelected().get(0);
+                File fileToBeRenamed = new File(toBeRenamed.getFilePath() + toBeRenamed.getFileName());
+
+                // TODO fire a dialog box to get file to be renamed to name
+
+                boolean renameStatus = renameFile(fileToBeRenamed, new File(Environment.getExternalStorageDirectory().toString() + "/bulluun"));
+                Log.d("MainActivity", renameStatus ? "rename worked!!!" : "rename didnt work!!!");
+                return true;
+
+            case R.id.action_delete:
+                for (int i = 0; i < getFileItemsSelected().size(); i++) {
+                    FileListItem toBeDeleted = getFileItemsSelected().get(i);
+                    File fileToBeDeleted = new File(toBeDeleted.getFilePath() + toBeDeleted.getFileName());
+                    boolean deleteStatus = deleteFile(fileToBeDeleted);
+
+                    if (!deleteStatus) {
+                        Toast toast = Toast.makeText(getApplicationContext(), "Delete failed", Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                }
+
+                prepareFileItemsFromPath();
+                restartListFragment();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
     private void setToolbarStyles() {
         int noFileItemsSelected = noFileItemsSelected();
+
+        // TODO: based on no of items selected hide menu items appropriately
 
         if (noFileItemsSelected > 0) {
             myToolbar.setTitle(noFileItemsSelected + " selected");
@@ -104,15 +156,19 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         ft.commit();
     }
 
-    private int noFileItemsSelected() {
-        int num = 0;
+    private ArrayList<FileListItem> getFileItemsSelected() {
+        ArrayList<FileListItem> fileListItemsSelected = new ArrayList<>();
         for (int i = 0; i < fileListItems.size(); i++) {
             if (fileListItems.get(i).getIsSelected()) {
-                num++;
+                fileListItemsSelected.add(fileListItems.get(i));
             }
         }
 
-        return num;
+        return fileListItemsSelected;
+    }
+
+    private int noFileItemsSelected() {
+        return getFileItemsSelected().size();
     }
 
     @Override
