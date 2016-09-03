@@ -1,6 +1,7 @@
 package com.example.store.phile.philestore;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -8,12 +9,15 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.File;
@@ -79,11 +83,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return true;
     }
 
-    /*
-      Test the following cases:
-      1) target file DOES exists
-      2) from file does not exist
-     */
     private boolean renameFile(File from, File to) {
         return from.exists() && from.getParentFile().exists() && !to.exists() && from.renameTo(to);
     }
@@ -95,14 +94,37 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+
+            // TODO: style rename dialog box.
             case R.id.action_rename:
-                FileListItem toBeRenamed = getFileItemsSelected().get(0);
-                File fileToBeRenamed = new File(toBeRenamed.getFilePath() + toBeRenamed.getFileName());
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Title");
+                final EditText input = new EditText(this);
+                builder.setView(input);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        FileListItem toBeRenamed = getFileItemsSelected().get(0);
+                        File fileToBeRenamed = new File(toBeRenamed.getFilePath() + toBeRenamed.getFileName());
+                        Log.d("MainAct", toBeRenamed.getFilePath() + input.getText().toString());
+                        File fileToBeRenamedTo = new File(toBeRenamed.getFilePath() + input.getText().toString());
+                        boolean renameStatus = renameFile(fileToBeRenamed, fileToBeRenamedTo);
 
-                // TODO fire a dialog box to get file to be renamed to name
+                        if (!renameStatus) {
+                            Toast toast = Toast.makeText(getApplicationContext(), "Rename failed", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
 
-                boolean renameStatus = renameFile(fileToBeRenamed, new File(Environment.getExternalStorageDirectory().toString() + "/bulluun"));
-                Log.d("MainActivity", renameStatus ? "rename worked!!!" : "rename didnt work!!!");
+                builder.show();
+
                 return true;
 
             case R.id.action_delete:
