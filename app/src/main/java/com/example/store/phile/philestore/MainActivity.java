@@ -11,6 +11,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.View;
 
 import java.io.File;
@@ -69,12 +70,25 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         restartListFragment();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
     private void setToolbarStyles() {
-        if (noFileItemsSelected() > 0) {
+        int noFileItemsSelected = noFileItemsSelected();
+
+        if (noFileItemsSelected > 0) {
+            myToolbar.setTitle(noFileItemsSelected + " selected");
             myToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
             myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarSelected));
         } else {
             myToolbar.setNavigationIcon(null);
+
+            // TODO: What should be the title when no item is selected
+            myToolbar.setTitle("PhileStore");
             myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarDefault));
         }
     }

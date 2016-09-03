@@ -23,13 +23,11 @@
 
     <style name="MyToolbar" parent="Theme.AppCompat.Light">
 
-        <!-- navigation icon color -->
+        <!--&lt;!&ndash; navigation icon color &ndash;&gt;-->
         <item name="colorControlNormal">@color/white</item>
 
-        <item name="android:textColor">@color/white</item>
+        <!--&lt;!&ndash; text color &ndash;&gt;-->
+        <!--<item name="android:textColor">@color/white</item>-->
         <item name="android:textColorPrimary">@color/white</item>
-
-        <!-- color of the menu overflow icon -->
-        <item name="android:textColorSecondary">@color/white</item>
     </style>
 </resources>
