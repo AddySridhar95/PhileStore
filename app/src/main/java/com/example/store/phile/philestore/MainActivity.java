@@ -1,10 +1,12 @@
 package com.example.store.phile.philestore;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -32,6 +34,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     private Toolbar myToolbar;
 
     private void prepareFileItemsFromPath() {
+
+        // TODO: for sorting, sort fileListItems according to sort order here
+
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {
@@ -91,11 +96,26 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return file.exists() && file.delete();
     }
 
+    // TODO make sure parent path is appended with file separator
+    private boolean createFile(String parentPath, String path) {
+        File file = new File(parentPath + path);
+        if (file.exists()) {
+            return false;
+        }
+
+        FileListItem fileItem = new FileListItem(parentPath, path);
+        fileListItems.add(fileItem);
+
+        return true;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
             // TODO: style rename dialog box.
+            // TODO: test renaming to same folder
+            // TODO: initialize dialog input box to current folder (the one to be renamed) name
             case R.id.action_rename:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Title");
@@ -113,6 +133,11 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                         if (!renameStatus) {
                             Toast toast = Toast.makeText(getApplicationContext(), "Rename failed", Toast.LENGTH_SHORT);
                             toast.show();
+                        } else {
+
+                            // TODO: test fragment refresh
+                            prepareFileItemsFromPath();
+                            restartListFragment();
                         }
                     }
                 });
@@ -128,6 +153,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 return true;
 
             case R.id.action_delete:
+
+                // TODO: test the case where one delete fail, one pass.
+                // TODO: test fragment refresh
+                boolean allFailed = true;
                 for (int i = 0; i < getFileItemsSelected().size(); i++) {
                     FileListItem toBeDeleted = getFileItemsSelected().get(i);
                     File fileToBeDeleted = new File(toBeDeleted.getFilePath() + toBeDeleted.getFileName());
@@ -136,11 +165,44 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                     if (!deleteStatus) {
                         Toast toast = Toast.makeText(getApplicationContext(), "Delete failed", Toast.LENGTH_SHORT);
                         toast.show();
+                    } else {
+                        allFailed = false;
                     }
                 }
 
+                if (!allFailed) {
+                    prepareFileItemsFromPath();
+                    restartListFragment();
+                }
+
+                return true;
+/*
+                // TODO: move this to floating button handler
+                boolean createStatus = createFile(..., ...)
+                if (createStatus) {
+                    prepareFileItemsFromPath();
+                    restartListFragment();
+                } else {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Create failed", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+*/
+
+            // TODO test this
+            case R.id.action_refresh:
                 prepareFileItemsFromPath();
                 restartListFragment();
+
+                return true;
+
+            case R.id.action_sort:
+                return true;
+
+            // For move and copy use createNewFile/mkdir maybe? Can move multiple files, folders and a mixture of the two
+            case R.id.action_move:
+                return true;
+
+            case R.id.action_copy:
                 return true;
 
             default:
@@ -220,6 +282,69 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
             }
         });
+
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        if (fab != null) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialogInputBox();
+                }
+            });
+        }
+
+    }
+
+    public void dialogInputBox() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Create folder");
+        final EditText input = new EditText(this);
+        builder.setView(input);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String creationError = "";
+
+                if (input.getText() != null && !input.getText().toString().isEmpty()) {
+                    String parentPath = path;
+                    if (!parentPath.endsWith(File.separator)) {
+                        parentPath = parentPath + File.separator;
+                    }
+
+                    String folderName = input.getText().toString();
+                    File target = new File(parentPath + folderName);
+
+                    if (!target.exists()) {
+                        boolean status = target.mkdir();
+
+                        if (!status) {
+                            creationError = "Folder creation failed";
+                        }
+
+                    } else {
+                        creationError = "Folder already exists";
+                    }
+                } else {
+                    creationError = "Folder name not valid";
+                }
+
+                if (creationError.isEmpty()) {
+                    Toast toast = Toast.makeText(getApplicationContext(), creationError, Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+
+                prepareFileItemsFromPath();
+                restartListFragment();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
     }
 
     @Override
