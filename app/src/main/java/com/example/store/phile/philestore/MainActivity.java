@@ -31,7 +31,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     private String path = Environment.getExternalStorageDirectory().toString();
     private ArrayList<FileListItem> fileListItems = new ArrayList<>();
+    private ArrayList<FileListItem> clipboard = new ArrayList<>();
     private Toolbar myToolbar;
+
+
 
     private void prepareFileItemsFromPath() {
 
@@ -96,18 +99,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return file.exists() && file.delete();
     }
 
-    // TODO make sure parent path is appended with file separator
-    private boolean createFile(String parentPath, String path) {
-        File file = new File(parentPath + path);
-        if (file.exists()) {
-            return false;
-        }
-
-        FileListItem fileItem = new FileListItem(parentPath, path);
-        fileListItems.add(fileItem);
-
-        return true;
-    }
+//    private boolean moveFile() {
+//
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -134,8 +128,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                             Toast toast = Toast.makeText(getApplicationContext(), "Rename failed", Toast.LENGTH_SHORT);
                             toast.show();
                         } else {
-
-                            // TODO: test fragment refresh
                             prepareFileItemsFromPath();
                             restartListFragment();
                         }
@@ -155,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             case R.id.action_delete:
 
                 // TODO: test the case where one delete fail, one pass.
-                // TODO: test fragment refresh
                 boolean allFailed = true;
                 for (int i = 0; i < getFileItemsSelected().size(); i++) {
                     FileListItem toBeDeleted = getFileItemsSelected().get(i);
@@ -176,17 +167,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
 
                 return true;
-/*
-                // TODO: move this to floating button handler
-                boolean createStatus = createFile(..., ...)
-                if (createStatus) {
-                    prepareFileItemsFromPath();
-                    restartListFragment();
-                } else {
-                    Toast toast = Toast.makeText(getApplicationContext(), "Create failed", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
-*/
 
             // TODO test this
             case R.id.action_refresh:
@@ -200,9 +180,21 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
             // For move and copy use createNewFile/mkdir maybe? Can move multiple files, folders and a mixture of the two
             case R.id.action_move:
+                ArrayList<FileListItem> selectedItems = new ArrayList<>();
+                clipboard = selectedItems;
+                for (int i = 0; i < selectedItems.size(); i++) {
+                    selectedItems.get(i).setIsSelected(false);
+                }
+
+                restartListFragment();
+                // mark all selected items as unselected
+                // put them in clipboard
                 return true;
 
             case R.id.action_copy:
+                return true;
+
+            case R.id.action_paste:
                 return true;
 
             default:
@@ -323,6 +315,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                         }
 
                     } else {
+                        // TODO: item already exists, do you want to replace dialog
                         creationError = "Folder already exists";
                     }
                 } else {

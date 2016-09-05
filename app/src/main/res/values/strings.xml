@@ -10,4 +10,5 @@
     <string name="action_copy">Copy</string>
     <string name="action_compress">Compress</string>
     <string name="action_refresh">Refresh</string>
+    <string name="action_paste">Paste</string>
 </resources>
