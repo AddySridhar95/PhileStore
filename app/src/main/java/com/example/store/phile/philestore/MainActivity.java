@@ -63,12 +63,14 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         FileListItem fileItemSelected = fileListItems.get(pos);
         fileItemSelected.setIsSelected(!fileItemSelected.getIsSelected());
         restartListFragment();
+        invalidateOptionsMenu();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 
@@ -142,8 +144,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
                 return true;
 
-            case R.id.action_sort:
-                return true;
+//            case R.id.action_sort:
+//                return true;
 
             // For move and copy use createNewFile/mkdir maybe? Can move multiple files, folders and a mixture of the two
             case R.id.action_move:
@@ -159,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
 
                 restartListFragment();
-
+                invalidateOptionsMenu();
 
                 // TODO Error message when trying to move root/abc to root/abc/child_abc/
                 // TODO fire dialog to inform user about clipboard and paste operation.
@@ -178,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
 
                 restartListFragment();
+                invalidateOptionsMenu();
                 return true;
 
             case R.id.action_paste:
@@ -210,7 +213,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                             toast.show();
                         }
                     }
-
+                    clipboard.clear();
+                    invalidateOptionsMenu();
                 }
                 return true;
 
@@ -259,6 +263,48 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             });
         }
 
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu){
+        ArrayList<FileListItem> itemsSelected = getFileItemsSelected();
+        MenuItem copy = menu.findItem(R.id.action_copy);
+        copy.setVisible(false);
+        MenuItem paste = menu.findItem(R.id.action_paste);
+        paste.setVisible(false);
+        MenuItem delete = menu.findItem(R.id.action_delete);
+        delete.setVisible(false);
+        MenuItem refresh = menu.findItem(R.id.action_refresh);
+        refresh.setVisible(false);
+        MenuItem rename = menu.findItem(R.id.action_rename);
+        rename.setVisible(false);
+        MenuItem move = menu.findItem(R.id.action_move);
+        move.setVisible(false);
+        MenuItem groupBy = menu.findItem(R.id.action_group_by);
+        groupBy.setVisible(false);
+        MenuItem sort = menu.findItem(R.id.action_sort);
+        sort.setVisible(false);
+
+        if (itemsSelected.size() == 1) {
+            move.setVisible(true);
+            delete.setVisible(true);
+            copy.setVisible(true);
+            rename.setVisible(true);
+        } else if (itemsSelected.size() > 1) {
+            move.setVisible(true);
+            delete.setVisible(true);
+            copy.setVisible(true);
+        } else {
+            groupBy.setVisible(true);
+            sort.setVisible(true);
+            refresh.setVisible(true);
+
+            if (clipboard.size() > 0) {
+                paste.setVisible(true);
+            }
+        }
+
+        return true;
     }
 
     @Override

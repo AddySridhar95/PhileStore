@@ -8,21 +8,11 @@
         android:title="@string/action_rename"
         app:showAsAction="never"/>
 
+    <!-- always show as icon -->
     <item android:id="@+id/action_delete"
         android:title="@string/action_delete"
-        app:showAsAction="never"/>
-
-    <item android:id="@+id/action_group_by"
-        android:title="@string/action_group_by"
-        app:showAsAction="never"/>
-
-    <item android:id="@+id/action_sort"
-        android:title="@string/action_sort"
-        app:showAsAction="never"/>
-
-    <item android:id="@+id/action_properties"
-        android:title="@string/action_properties"
-        app:showAsAction="never"/>
+        android:icon="@drawable/ic_action_delete"
+        app:showAsAction="always"/>
 
     <item android:id="@+id/action_move"
         android:title="@string/action_move"
@@ -32,15 +22,50 @@
         android:title="@string/action_copy"
         app:showAsAction="never"/>
 
-    <item android:id="@+id/action_compress"
-        android:title="@string/action_compress"
-        app:showAsAction="never"/>
-
     <item android:id="@+id/action_refresh"
         android:title="@string/action_refresh"
         app:showAsAction="never"/>
 
+    <!-- always show as icon -->
     <item android:id="@+id/action_paste"
         android:title="@string/action_paste"
-        app:showAsAction="never"/>
+        android:icon="@drawable/ic_action_paste"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/action_group_by"
+    android:title="@string/action_group_by"
+    app:showAsAction="never"/>
+
+    <item android:id="@+id/action_sort"
+    android:title="@string/action_sort"
+    app:showAsAction="never"/>
+
+    <!--<item android:id="@+id/action_properties"-->
+    <!--android:title="@string/action_properties"-->
+    <!--app:showAsAction="never"/>-->
+
+    <!--<item android:id="@+id/action_compress"-->
+    <!--android:title="@string/action_compress"-->
+    <!--app:showAsAction="never"/>-->
 </menu>
+
+<!--
+Group by
+Sort
+Refresh
+
+1 selected
+Rename
+Move
+Copy
+properties
+compress
+
+
+multiple selected
+Move
+Copy
+Compress
+
+
+-->
