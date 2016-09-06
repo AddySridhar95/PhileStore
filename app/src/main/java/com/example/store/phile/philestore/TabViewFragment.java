@@ -48,60 +48,97 @@ public class TabViewFragment extends Fragment {
         return inflater.inflate(R.layout.tab_view_fragment, container, false);
     }
 
+    private String normalizePaths(String path) {
+        if (!path.endsWith(File.separator)) {
+            return path + File.separator;
+        }
+
+        return path;
+    }
+
+    private int getTextStyle(String filePath) {
+        String path = ((MainActivity)mAct).getPath();
+
+        int textStyle = R.style.tabNormal;
+        if (normalizePaths(filePath).equals(normalizePaths(path))) {
+            textStyle = R.style.tabBold;
+        }
+
+        return textStyle;
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        // from mAct get path
 
-        if (mAct != null) {
-            String undisturbedPath = ((MainActivity)mAct).getUndisturbedPath();
+        // Failsafe
+        if (mAct == null) {
+            return;
+        }
 
-            if (undisturbedPath.contains(Environment.getExternalStorageDirectory().toString())) {
+        String undisturbedPath = ((MainActivity)mAct).getUndisturbedPath();
+        final String localStoragePath = Environment.getExternalStorageDirectory().toString();
 
-                String tabPath = undisturbedPath.replace(Environment.getExternalStorageDirectory().toString(), "");
-                String[] items = tabPath.split(File.separator);
-                LinearLayout layout = (LinearLayout)mAct.findViewById(R.id.tab_view);
-                TextView tview = new TextView(mAct);
+        // Failsafe
+        if (!undisturbedPath.contains(localStoragePath)) {
+            return;
+        }
 
-                tview.setText(R.string.local_storage);
-                TextViewCompat.setTextAppearance(tview, R.style.tabBold);
-                tview.setAllCaps(true);
-                tview.setPadding(100, 0, 0, 0);
-                layout.addView(tview);
+        String tabPath = undisturbedPath.replace(localStoragePath, "");
+        String[] items = tabPath.split(File.separator);
 
-                final ArrayList<String> filePaths = new ArrayList<String>();
-                filePaths.add(Environment.getExternalStorageDirectory().toString() + File.separator);
+        LinearLayout layout = (LinearLayout)mAct.findViewById(R.id.tab_view);
+        TextView tview = new TextView(mAct);
 
-                for (int i = 0; i < items.length; i++) {
-                    if (!items[i].isEmpty()) {
-                        filePaths.add(filePaths.get(filePaths.size() - 1) + items[i] + File.separator);
-                        ImageView iView = new ImageView(mAct);
+        tview.setText(R.string.local_storage);
+        TextViewCompat.setTextAppearance(tview, getTextStyle(localStoragePath));
+        tview.setAllCaps(true);
+        tview.setPadding(100, 0, 0, 0);
+        layout.addView(tview);
+        tview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    ((TabActionsListener) mAct).onTabItemClicked(localStoragePath);
+                } catch (ClassCastException cce) {
 
-                        // TODO: copy drawable resource
-                        iView.setImageResource(R.drawable.abc_ic_go_search_api_mtrl_alpha);
-                        iView.setPadding(20, 0, 20, 0);
-                        layout.addView(iView);
-
-                        final TextView tview1 = new TextView(mAct);
-                        tview1.setText(items[i]);
-                        TextViewCompat.setTextAppearance(tview1, R.style.tabBold);
-                        tview1.setAllCaps(true);
-                        final int index = i;
-                        tview1.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (index + 1 <= filePaths.size()) {
-                                    try {
-                                        ((TabActionsListener) mAct).onTabItemClicked(filePaths.get(index));
-                                    } catch (ClassCastException cce) {
-
-                                    }
-                                }
-                            }
-                        });
-                        layout.addView(tview1);
-                    }
                 }
+
+            }
+        });
+
+        final ArrayList<String> filePaths = new ArrayList<String>();
+        filePaths.add(Environment.getExternalStorageDirectory().toString() + File.separator);
+
+        for (int i = 0; i < items.length; i++) {
+            if (!items[i].isEmpty()) {
+                String filePath = filePaths.get(filePaths.size() - 1) + items[i] + File.separator;
+                filePaths.add(filePath);
+                ImageView iView = new ImageView(mAct);
+
+                // TODO: copy drawable resource
+                iView.setImageResource(R.drawable.abc_ic_go_search_api_mtrl_alpha);
+                iView.setPadding(20, 0, 20, 0);
+                layout.addView(iView);
+
+                final TextView tview1 = new TextView(mAct);
+                tview1.setText(items[i]);
+                TextViewCompat.setTextAppearance(tview1, getTextStyle(filePath));
+                tview1.setAllCaps(true);
+                final int index = i;
+                tview1.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (index + 1 <= filePaths.size()) {
+                            try {
+                                ((TabActionsListener) mAct).onTabItemClicked(filePaths.get(index));
+                            } catch (ClassCastException cce) {
+
+                            }
+                        }
+                    }
+                });
+                layout.addView(tview1);
             }
         }
     }

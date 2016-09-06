@@ -483,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             myToolbar.setNavigationIcon(null);
 
             // TODO: What should be the title when no item is selected
-            myToolbar.setTitle("PhileStore");
+            myToolbar.setTitle(R.string.app_name);
             myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarDefault));
         }
     }
@@ -585,6 +585,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     public String getUndisturbedPath() {
         return undisturbedPath;
+    }
+
+    public String getPath() {
+        return path;
     }
 }
 
