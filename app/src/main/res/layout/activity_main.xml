@@ -9,6 +9,7 @@
     android:fitsSystemWindows="true"
     tools:context="com.example.store.phile.philestore.MainActivity">
 
+    <!-- fragment_container will contain Tab view fragment and list view fragment -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,6 +25,7 @@
             android:theme="@style/MyToolbar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             />
+
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton

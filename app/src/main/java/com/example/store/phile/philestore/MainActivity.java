@@ -30,9 +30,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener {
+public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener, TabViewFragment.TabActionsListener {
 
     private String path = Environment.getExternalStorageDirectory().toString();
+    private String undisturbedPath = path;
     private ArrayList<FileListItem> fileListItems = new ArrayList<>();
     private ArrayList<FileListItem> clipboard = new ArrayList<>();
     private String clipboardOperation = "move";
@@ -52,8 +53,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     @Override
     public void onFileItemClicked(String p) {
-        // set private path variable
         path = p;
+        undisturbedPath = p;
         prepareFileItemsFromPath();
         restartListFragment();
     }
@@ -67,8 +68,12 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     }
 
     @Override
+    public void onTabItemClicked(String itemPath) {
+        // update path but not undisturbedPath
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         return true;
@@ -144,8 +149,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
                 return true;
 
-//            case R.id.action_sort:
-//                return true;
+            case R.id.action_sort:
+                return true;
 
             // For move and copy use createNewFile/mkdir maybe? Can move multiple files, folders and a mixture of the two
             case R.id.action_move:
@@ -233,9 +238,13 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
         setContentView(R.layout.activity_main);
 
+        TabViewFragment tabFrag = new TabViewFragment();
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().add(R.id.fragment_container, tabFrag, "tab_frag").commit();
+
         // Initialize fragment to display file list
         ListFileFragment frag = new ListFileFragment();
-        FragmentManager fm = getSupportFragmentManager();
+        fm = getSupportFragmentManager();
         fm.beginTransaction().add(R.id.fragment_container, frag, "pho_tag").commit();
 
         // Initialize toolbar
@@ -251,7 +260,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
             }
         });
-
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
@@ -483,6 +491,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         ft.commit();
     }
 
+    private void restartTabViewFragment() {
+
+    }
+
     private ArrayList<FileListItem> getFileItemsSelected() {
         ArrayList<FileListItem> fileListItemsSelected = new ArrayList<>();
         for (int i = 0; i < fileListItems.size(); i++) {
@@ -555,5 +567,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     public ArrayList<FileListItem> getFileListItems() {
         return fileListItems;
+    }
+
+    public String getUndisturbedPath() {
+        return undisturbedPath;
     }
 }
