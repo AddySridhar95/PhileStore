@@ -3,13 +3,19 @@ package com.example.store.phile.philestore;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.TextViewCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by adityasridhar on 16-09-06.
@@ -50,25 +56,53 @@ public class TabViewFragment extends Fragment {
         if (mAct != null) {
             String undisturbedPath = ((MainActivity)mAct).getUndisturbedPath();
 
-            String[] items = undisturbedPath.split("/");
+            if (undisturbedPath.contains(Environment.getExternalStorageDirectory().toString())) {
 
-            for (int i = 0; i < items.length; i++) {
-                Log.d("onActivityCreated", items[i]);
+                String tabPath = undisturbedPath.replace(Environment.getExternalStorageDirectory().toString(), "");
+                String[] items = tabPath.split(File.separator);
+                LinearLayout layout = (LinearLayout)mAct.findViewById(R.id.tab_view);
+                TextView tview = new TextView(mAct);
+
+                tview.setText(R.string.local_storage);
+                TextViewCompat.setTextAppearance(tview, R.style.tabBold);
+                tview.setAllCaps(true);
+                tview.setPadding(100, 0, 0, 0);
+                layout.addView(tview);
+
+                final ArrayList<String> filePaths = new ArrayList<String>();
+                filePaths.add(Environment.getExternalStorageDirectory().toString() + File.separator);
+
+                for (int i = 0; i < items.length; i++) {
+                    if (!items[i].isEmpty()) {
+                        filePaths.add(filePaths.get(filePaths.size() - 1) + items[i] + File.separator);
+                        ImageView iView = new ImageView(mAct);
+
+                        // TODO: copy drawable resource
+                        iView.setImageResource(R.drawable.abc_ic_go_search_api_mtrl_alpha);
+                        iView.setPadding(20, 0, 20, 0);
+                        layout.addView(iView);
+
+                        final TextView tview1 = new TextView(mAct);
+                        tview1.setText(items[i]);
+                        TextViewCompat.setTextAppearance(tview1, R.style.tabBold);
+                        tview1.setAllCaps(true);
+                        final int index = i;
+                        tview1.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (index + 1 <= filePaths.size()) {
+                                    try {
+                                        ((TabActionsListener) mAct).onTabItemClicked(filePaths.get(index));
+                                    } catch (ClassCastException cce) {
+
+                                    }
+                                }
+                            }
+                        });
+                        layout.addView(tview1);
+                    }
+                }
             }
-
-            LinearLayout layout = (LinearLayout)mAct.findViewById(R.id.tab_view);
-            TextView tview1 = new TextView(mAct);
-            tview1.setText("abc  ");
-            layout.addView(tview1);
-
-            TextView tview2 = new TextView(mAct);
-            tview2.setText("xyz  ");
-            layout.addView(tview2);
-
-            TextView tview3 = new TextView(mAct);
-            tview3.setText("lmn  ");
-            layout.addView(tview3);
         }
-
     }
 }

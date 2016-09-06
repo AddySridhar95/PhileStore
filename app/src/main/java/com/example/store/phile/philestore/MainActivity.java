@@ -69,6 +69,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     @Override
     public void onTabItemClicked(String itemPath) {
+        Log.d("onTabItemClicked", itemPath);
+        path = itemPath;
+        prepareFileItemsFromPath();
+        restartListFragment();
         // update path but not undisturbedPath
     }
 
@@ -353,13 +357,17 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         String base_path = Environment.getExternalStorageDirectory().toString();
 
         if (path == base_path) {
+            // TODO error on back press. Fix this
             super.onBackPressed();
             // TODO: navigate to main view
         } else {
             String newPath = "";
             if (path.length() > base_path.length()) {
-                for (int i = 0; i < path.split(File.separator).length - 1; i++) {
-                    newPath = newPath + File.separator + path.split(File.separator)[i];
+                String elements[] = path.split(File.separator);
+                for (int i = 0; i < elements.length - 1; i++) {
+                    if (!elements[i].isEmpty() && elements[i] != "") {
+                        newPath = newPath + File.separator + path.split(File.separator)[i];
+                    }
                 }
             }
 
@@ -482,17 +490,23 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     private void restartListFragment() {
         setToolbarStyles();
+        restartTabViewFragment();
 
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ListFileFragment fragment = (ListFileFragment) fm.findFragmentByTag("pho_tag");
+        ListFileFragment listFrag = (ListFileFragment) fm.findFragmentByTag("pho_tag");
 
-        ft.detach(fragment).attach(fragment);
+        ft.detach(listFrag).attach(listFrag);
         ft.commit();
     }
 
     private void restartTabViewFragment() {
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        TabViewFragment tabFrag = (TabViewFragment) fm.findFragmentByTag("tab_frag");
 
+        ft.detach(tabFrag).attach(tabFrag);
+        ft.commit();
     }
 
     private ArrayList<FileListItem> getFileItemsSelected() {
@@ -573,3 +587,5 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return undisturbedPath;
     }
 }
+
+// TODO contemplate using abc_ic_menu_paste_mtrl_am_alpha as paste icon. Found it in res/values/values.xml

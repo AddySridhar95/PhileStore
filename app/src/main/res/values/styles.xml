@@ -31,4 +31,14 @@
         <!-- text color -->
         <item name="android:textColorPrimary">@color/white</item>
     </style>
+
+    <style name="tabBold">
+        <item name="android:textStyle">bold|italic</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+    <style name="tabNormal">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
 </resources>

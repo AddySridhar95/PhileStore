@@ -120,10 +120,9 @@ public class ListFileFragment extends ListFragment {
                 try {
                     ((FileActionsListener) mAct).onFileItemSelected(position);
                 } catch (ClassCastException cce) {
-
+                    return false;
                 }
 
-                // TODO: why does it return true
                 return true;
             }
         });
