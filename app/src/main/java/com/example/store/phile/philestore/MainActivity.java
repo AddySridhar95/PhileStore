@@ -64,16 +64,14 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         FileListItem fileItemSelected = fileListItems.get(pos);
         fileItemSelected.setIsSelected(!fileItemSelected.getIsSelected());
         restartListFragment();
-        invalidateOptionsMenu();
     }
 
     @Override
     public void onTabItemClicked(String itemPath) {
-        Log.d("onTabItemClicked", itemPath);
+        // update path but not undisturbedPath
         path = itemPath;
         prepareFileItemsFromPath();
         restartListFragment();
-        // update path but not undisturbedPath
     }
 
     @Override
@@ -92,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             // TODO: initialize dialog input box to current folder (the one to be renamed) name
             case R.id.action_rename:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Title");
+                builder.setTitle(R.string.rename_folder);
                 final EditText input = new EditText(this);
                 builder.setView(input);
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -107,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                             Toast toast = Toast.makeText(getApplicationContext(), "Rename failed", Toast.LENGTH_SHORT);
                             toast.show();
                         } else {
+                            undisturbedPath = path;
                             prepareFileItemsFromPath();
                             restartListFragment();
                         }
@@ -141,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
 
                 if (!allFailed) {
+                    undisturbedPath = path;
                     prepareFileItemsFromPath();
                     restartListFragment();
                 }
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             case R.id.action_sort:
                 return true;
 
-            // For move and copy use createNewFile/mkdir maybe? Can move multiple files, folders and a mixture of the two
+            // TODO: test moving mixture of folders/file
             case R.id.action_move:
                 ArrayList<FileListItem> selectedMoveItems = getFileItemsSelected();
 
@@ -170,18 +170,21 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
 
                 restartListFragment();
-                invalidateOptionsMenu();
 
                 // TODO Error message when trying to move root/abc to root/abc/child_abc/
                 // TODO fire dialog to inform user about clipboard and paste operation.
                 return true;
 
             case R.id.action_copy:
+
+                // TODO bug: copying multiple items
                 ArrayList<FileListItem> selectedCopyItems = getFileItemsSelected();
 
                 // save selected file items in the clipboard
                 clipboard = selectedCopyItems;
                 clipboardOperation = "copy";
+
+                Log.d("action_copy", clipboard.size() + "");
 
                 // mark each selected item as unselected
                 for (int i = 0; i < selectedCopyItems.size(); i++) {
@@ -189,10 +192,13 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 }
 
                 restartListFragment();
-                invalidateOptionsMenu();
                 return true;
 
             case R.id.action_paste:
+
+                Log.d("action_paste", clipboard.size() + "");
+
+                // TODO: bug. pasting multiple items ....
                 for (int i = 0; i < clipboard.size(); i++) {
 
                     String parentPath = path;
@@ -215,8 +221,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                     } else {
                         boolean copyStatus = copyFilesOrDirectories(clipboardFile, targetFile);
                         if (copyStatus) {
-                            prepareFileItemsFromPath();
-                            restartListFragment();
+                            // prepareFileItemsFromPath();
+                            // restartListFragment();
                         } else {
                             Toast toast = Toast.makeText(getApplicationContext(), "Copy operation failed", Toast.LENGTH_SHORT);
                             toast.show();
@@ -242,6 +248,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
         setContentView(R.layout.activity_main);
 
+        // Initialize tab fragment
         TabViewFragment tabFrag = new TabViewFragment();
         FragmentManager fm = getSupportFragmentManager();
         fm.beginTransaction().add(R.id.fragment_container, tabFrag, "tab_frag").commit();
@@ -398,7 +405,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return from.exists() && !to.exists() && from.renameTo(to);
     }
 
-    // TODO: fix delete by looping over all children and deleting one by one
     private boolean deleteFile(File file) {
 
         if (!file.exists()) {
@@ -479,6 +485,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             myToolbar.setTitle(noFileItemsSelected + " selected");
             myToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
             myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarSelected));
+
         } else {
             myToolbar.setNavigationIcon(null);
 
@@ -489,7 +496,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     }
 
     private void restartListFragment() {
-        setToolbarStyles();
         restartTabViewFragment();
 
         FragmentManager fm = getSupportFragmentManager();
@@ -498,6 +504,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
         ft.detach(listFrag).attach(listFrag);
         ft.commit();
+
+        setToolbarStyles();
+        invalidateOptionsMenu();
     }
 
     private void restartTabViewFragment() {

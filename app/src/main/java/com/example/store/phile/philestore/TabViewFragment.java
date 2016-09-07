@@ -84,6 +84,11 @@ public class TabViewFragment extends Fragment {
             return;
         }
 
+        // TODO set background of horizontal scroll view
+//        if (mAct.noItemsSelected() > 0) {
+//
+//        }
+
         String tabPath = undisturbedPath.replace(localStoragePath, "");
         String[] items = tabPath.split(File.separator);
 
@@ -103,7 +108,6 @@ public class TabViewFragment extends Fragment {
                 } catch (ClassCastException cce) {
 
                 }
-
             }
         });
 

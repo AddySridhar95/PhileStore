@@ -40,6 +40,15 @@ public class ListFileFragment extends ListFragment {
         Log.d("ListFileFragment", mAct == null ? "is null" : "not null");
     }
 
+    private String getFileSizeText(File f) {
+        if (f.isDirectory()) {
+            int items = f.list().length;
+            return items + " items";
+        } else {
+            return android.text.format.Formatter.formatShortFileSize(mAct, f.length());
+        }
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -87,6 +96,9 @@ public class ListFileFragment extends ListFragment {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd MMM, yyyy"); // hh:mm a
                 dateText.setText(sdf.format(lastModifiedDate));
 
+                // Set list size text
+                TextView sizeText = (TextView) v.findViewById(R.id.list_size);
+                sizeText.setText(getFileSizeText(file));
                 return v;
             }
         };
