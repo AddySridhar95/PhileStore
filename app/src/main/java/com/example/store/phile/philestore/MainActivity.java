@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener, TabViewFragment.TabActionsListener {
@@ -37,6 +38,12 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     private ArrayList<FileListItem> fileListItems = new ArrayList<>();
     private ArrayList<FileListItem> clipboard = new ArrayList<>();
     private String clipboardOperation = "move";
+
+    final private String[] sortOpts = {"Name", "Size"};
+    private int sortOptionIndexSelected = 0;
+    boolean sortOrderIsAscending = true;
+
+    // TODO: store sort order in bundle and restore on restart
 
     private Toolbar myToolbar;
     private FilenameFilter filter = new FilenameFilter() {
@@ -154,7 +161,36 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 return true;
 
             case R.id.action_sort:
+                AlertDialog.Builder sortDialogBldr = new AlertDialog.Builder(this);
+                sortDialogBldr.setTitle(R.string.sort_title)
+                        .setSingleChoiceItems(sortOpts, sortOptionIndexSelected, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                sortOptionIndexSelected = which;
+                            }
+                        })
+                        .setPositiveButton(R.string.ascending, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                sortOrderIsAscending = true;
+                                dialog.dismiss();
+                                prepareFileItemsFromPath();
+                                restartListFragment();
+                            }
+
+                        })
+                        .setNegativeButton(R.string.descending, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                sortOrderIsAscending = false;
+                                dialog.dismiss();
+                                prepareFileItemsFromPath();
+                                restartListFragment();
+                            }
+                        });
+                sortDialogBldr.show();
                 return true;
+
 
             // TODO: test moving mixture of folders/file
             case R.id.action_move:
@@ -384,10 +420,30 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     // --------- Helpers --------------
 
+    private long getRawFileSize(File f) {
+        if (f.isFile()) {
+            return f.length();
+        } else {
+            String[] children = f.list(filter);
+            long len = 0;
+            for (int i = 0; i < children.length; i++) {
+                String parentPath = f.getAbsolutePath();
+                if (!parentPath.endsWith(File.separator)) {
+                    parentPath = parentPath + File.separator;
+                }
+
+                len = len + getRawFileSize(new File(parentPath + children[i]));
+            }
+
+            return len;
+        }
+    }
+
     private void prepareFileItemsFromPath() {
-        // TODO: for sorting, sort fileListItems according to sort order here
         fileListItems.clear();
         String[] files = (new File(path)).list(filter);
+
+        // TODO: can optimize here. need not fetch file items again in sort only case
         for(int i = 0; i < files.length; i++) {
 
             // parentPath is the path of the directory the file in question is in.
@@ -396,8 +452,24 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 parentPath = parentPath + File.separator;
             }
 
-            FileListItem fileListItem = new FileListItem(files[i], parentPath);
+            long rawSize = getRawFileSize(new File(parentPath + files[i]));
+            FileListItem fileListItem = new FileListItem(files[i], parentPath, rawSize);
+            Log.d("prepareFileI", rawSize + "");
             fileListItems.add(fileListItem);
+        }
+
+        if (sortOptionIndexSelected == 0) {
+            Collections.sort(
+                    fileListItems,
+                    sortOrderIsAscending ? FileListItem.FileNameComparatorAsc : FileListItem.FileNameComparatorDesc
+            );
+        }
+
+        if (sortOptionIndexSelected == 1) {
+            Collections.sort(
+                    fileListItems,
+                    sortOrderIsAscending ? FileListItem.FileRawSizeComparatorAsc : FileListItem.FileRawSizeComparatorDesc
+            );
         }
     }
 
@@ -412,7 +484,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         }
 
         if (file.isDirectory()) {
-            String[] contents = file.list();
+            // TODO: test (filter)
+            String[] contents = file.list(filter);
             for (int i = 0; i < contents.length; i++) {
 
                 // TODO error handling
@@ -446,7 +519,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 to.mkdir();
             }
 
-            String[] files = from.list();
+            // TODO: test (filter)
+            String[] files = from.list(filter);
             // Log.d("copyFilesOrDirectories", files.length + "");
             for(int i = 0; i < files.length; i++) {
 
@@ -456,8 +530,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                     parentPath = parentPath + File.separator;
                 }
 
-                Log.d("copyFilesOrDirectories", parentPath + files[i]);
-                Log.d("copyFilesOrDirectories", new File(to.getAbsolutePath(), files[i]).getAbsolutePath());
                 // TODO error handling
                 boolean a = copyFilesOrDirectories(new File(parentPath + files[i]), new File(to.getAbsolutePath(), files[i]));
             }
@@ -478,8 +550,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     private void setToolbarStyles() {
         int noFileItemsSelected = noFileItemsSelected();
-
-        // TODO: based on no of items selected hide menu items appropriately
 
         if (noFileItemsSelected > 0) {
             myToolbar.setTitle(noFileItemsSelected + " selected");

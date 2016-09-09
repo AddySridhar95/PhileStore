@@ -17,6 +17,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by adityasridhar on 16-08-31.
@@ -73,7 +74,7 @@ public class ListFileFragment extends ListFragment {
                 }
 
                 FileListItem item = fileListItems.get(position);
-                File file = new File(item.getFilePath() + item.getFileName());
+                File file = new File(item.getFullPath());
 
                 // Set list icon image
                 ImageView iconImg = (ImageView) v.findViewById(R.id.list_icon);
