@@ -2,6 +2,7 @@ package com.example.store.phile.philestore;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.Date;
 
 /**
  * Created by adityasridhar on 16-09-01.
@@ -11,12 +12,14 @@ public class FileListItem {
     private String filePath;
     private boolean isSelected;
     private long rawSize;
+    private Date lastModified;
 
-    FileListItem(String fName, String fPath, long rSize) {
+    FileListItem(String fName, String fPath, long rSize, Date lModified) {
         fileName = fName;
         filePath = fPath;
         isSelected = false;
         rawSize = rSize;
+        lastModified = lModified;
     }
 
     public String getFileName() {
@@ -46,6 +49,10 @@ public class FileListItem {
 
     public long getRawSize() {
         return rawSize;
+    }
+
+    public Date getLastModified() {
+        return lastModified;
     }
 
     @Override
@@ -96,6 +103,28 @@ public class FileListItem {
             String name2 = item2.getFileName();
 
             return name2.compareTo(name1);
+        }
+    };
+
+    public static Comparator<FileListItem> FileDateComparatorAsc = new Comparator<FileListItem>() {
+        @Override
+        public int compare(FileListItem item1, FileListItem item2) {
+
+            Date date1 = item1.getLastModified();
+            Date date2 = item2.getLastModified();
+
+            return date1.compareTo(date2);
+        }
+    };
+
+    public static Comparator<FileListItem> FileDateComparatorDesc = new Comparator<FileListItem>() {
+        @Override
+        public int compare(FileListItem item1, FileListItem item2) {
+
+            Date date1 = item1.getLastModified();
+            Date date2 = item2.getLastModified();
+
+            return date2.compareTo(date1);
         }
     };
 }

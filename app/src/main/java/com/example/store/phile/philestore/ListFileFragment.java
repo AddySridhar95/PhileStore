@@ -92,10 +92,9 @@ public class ListFileFragment extends ListFragment {
                 headerText.setText(item.getFileName());
 
                 // Set list date text
-                Date lastModifiedDate = new Date(file.lastModified());
                 TextView dateText = (TextView) v.findViewById(R.id.list_date_created);
                 SimpleDateFormat sdf = new SimpleDateFormat("dd MMM, yyyy"); // hh:mm a
-                dateText.setText(sdf.format(lastModifiedDate));
+                dateText.setText(sdf.format(item.getLastModified()));
 
                 // Set list size text
                 TextView sizeText = (TextView) v.findViewById(R.id.list_size);

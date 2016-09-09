@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener, TabViewFragment.TabActionsListener {
@@ -39,12 +40,11 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     private ArrayList<FileListItem> clipboard = new ArrayList<>();
     private String clipboardOperation = "move";
 
-    final private String[] sortOpts = {"Name", "Size"};
+    final private String[] sortOpts = {"Name", "Size", "Date last modified"};
     private int sortOptionIndexSelected = 0;
     boolean sortOrderIsAscending = true;
 
     // TODO: store sort order in bundle and restore on restart
-
     private Toolbar myToolbar;
     private FilenameFilter filter = new FilenameFilter() {
         @Override
@@ -452,9 +452,11 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 parentPath = parentPath + File.separator;
             }
 
-            long rawSize = getRawFileSize(new File(parentPath + files[i]));
-            FileListItem fileListItem = new FileListItem(files[i], parentPath, rawSize);
-            Log.d("prepareFileI", rawSize + "");
+            File file = new File(parentPath + files[i]);
+            long rawSize = getRawFileSize(file);
+            Date lastModified = new Date(file.lastModified());
+            FileListItem fileListItem = new FileListItem(files[i], parentPath, rawSize, lastModified);
+
             fileListItems.add(fileListItem);
         }
 
@@ -469,6 +471,13 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             Collections.sort(
                     fileListItems,
                     sortOrderIsAscending ? FileListItem.FileRawSizeComparatorAsc : FileListItem.FileRawSizeComparatorDesc
+            );
+        }
+
+        if (sortOptionIndexSelected == 2) {
+            Collections.sort(
+                    fileListItems,
+                    sortOrderIsAscending ? FileListItem.FileDateComparatorAsc : FileListItem.FileDateComparatorDesc
             );
         }
     }
