@@ -64,17 +64,20 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
      */
     @Override
     public void onFileItemClicked(String p) {
-        path = p;
-        undisturbedPath = p;
-
         File f = new File(p);
-        Log.d("onFileItemClicked", p);
+
+        // If file clicked is a directory, set path to directory path.
+        // Else if its a file, let path point to file's parent directory's path
         if (f.isDirectory()) {
-            Log.d("onFileItemClicked", "its a directory");
-            prepareFileItemsFromPath();
+            path = p;
+            undisturbedPath = p;
+            fileListItems.clear();
+            Log.d("MainActivity", "size of fileListItems is " + fileListItems.size());
             restartListFragment();
+
+            prepareFileItemsFromPath();
+            // restartListFragment();
         } else {
-            Log.d("onFileItemClicked", "its a file!!");
             try {
                 FileOpen.openFile(getApplicationContext(), f);
             } catch (IOException ex) {
@@ -94,6 +97,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         restartListFragment();
     }
 
+    /*
+     * When a tab in horizontal scroll view is selected
+     */
     @Override
     public void onTabItemClicked(String itemPath) {
         // update path but not undisturbedPath
