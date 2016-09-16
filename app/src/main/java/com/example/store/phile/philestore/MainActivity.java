@@ -200,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                                 sortOrderIsAscending = true;
                                 dialog.dismiss();
                                 prepareFileItemsFromPath();
+                                sortFileListItems();
                                 restartListFragment();
                             }
 
@@ -210,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                                 sortOrderIsAscending = false;
                                 dialog.dismiss();
                                 prepareFileItemsFromPath();
+                                sortFileListItems();
                                 restartListFragment();
                             }
                         });
@@ -306,6 +308,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
         // populate file items list based on path
         prepareFileItemsFromPath();
+        sortFileListItems();
 
         setContentView(R.layout.activity_main);
 
@@ -470,27 +473,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return path;
     }
 
-    private void prepareFileItemsFromPath() {
-        fileListItems.clear();
-        String[] files = (new File(path)).list(filter);
-
-        // TODO: can optimize here. need not fetch file items again in sort only case
-        for(int i = 0; i < files.length; i++) {
-
-            // parentPath is the path of the directory the file in question is in.
-            String parentPath = path;
-            if (!parentPath.endsWith(File.separator)) {
-                parentPath = parentPath + File.separator;
-            }
-
-            File file = new File(parentPath + files[i]);
-            long rawSize = getRawFileSize(file);
-            Date lastModified = new Date(file.lastModified());
-            FileListItem fileListItem = new FileListItem(files[i], parentPath, rawSize, lastModified);
-
-            fileListItems.add(fileListItem);
-        }
-
+    private void sortFileListItems() {
+        Log.d("MainActivity", "sortFileListItems called");
         if (sortOptionIndexSelected == 0) {
             Collections.sort(
                     fileListItems,
@@ -510,6 +494,28 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                     fileListItems,
                     sortOrderIsAscending ? FileListItem.FileDateComparatorAsc : FileListItem.FileDateComparatorDesc
             );
+        }
+    }
+
+    private void prepareFileItemsFromPath() {
+        fileListItems.clear();
+        String[] files = (new File(path)).list(filter);
+
+        // TODO: can optimize here. need not fetch file items again in sort only case
+        for(int i = 0; i < files.length; i++) {
+
+            // parentPath is the path of the directory the file in question is in.
+            String parentPath = path;
+            if (!parentPath.endsWith(File.separator)) {
+                parentPath = parentPath + File.separator;
+            }
+
+            File file = new File(parentPath + files[i]);
+            long rawSize = getRawFileSize(file);
+            Date lastModified = new Date(file.lastModified());
+            FileListItem fileListItem = new FileListItem(files[i], parentPath, rawSize, lastModified);
+
+            fileListItems.add(fileListItem);
         }
     }
 
@@ -618,14 +624,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        TabViewFragment tabFrag = (TabViewFragment) fm.findFragmentByTag("tab_frag");
 
-        ft.detach(tabFrag).attach(tabFrag);
-        ft.commit();
-
-
-        fm = getSupportFragmentManager();
-        ft = fm.beginTransaction();
         ListFileFragment listFrag = (ListFileFragment) fm.findFragmentByTag("pho_tag");
 
         ft.detach(listFrag).attach(listFrag);
@@ -659,6 +658,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return getFileItemsSelected().size();
     }
 
+    /*
+     * Create folder dialog box
+     */
     private void dialogInputBox() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create folder");
