@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<HorizontalScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="?attr/actionBarSize"
-    android:background="@color/colorToolbarDefault"
-    android:theme="@style/MyToolbar"
-    >
+<!--<HorizontalScrollView-->
+    <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="?attr/actionBarSize"-->
+    <!--android:background="@color/colorToolbarDefault"-->
+    <!--android:theme="@style/MyToolbar"-->
+    <!--android:id="@+id/tab_view_hscroll"-->
+    <!-->-->
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:id="@+id/tab_view"
         android:layout_height="match_parent"
@@ -14,4 +16,4 @@
         android:gravity="center">
 
     </LinearLayout>
-</HorizontalScrollView>
+<!--</HorizontalScrollView>-->

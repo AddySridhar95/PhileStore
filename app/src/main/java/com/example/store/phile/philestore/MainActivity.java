@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -58,6 +59,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     // --------- Handlers --------------
 
+    /*
+     * Called when a file item is clicked
+     */
     @Override
     public void onFileItemClicked(String p) {
         path = p;
@@ -66,6 +70,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         restartListFragment();
     }
 
+    /*
+     * Called when a file item is long pressed
+     */
     @Override
     public void onFileItemSelected(int pos) {
         FileListItem fileItemSelected = fileListItems.get(pos);
@@ -88,6 +95,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return true;
     }
 
+    /*
+     * Called when a menu option is selected
+     * TODO: normalize calling of restartListFragment.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -287,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         // Initialize tab fragment
         TabViewFragment tabFrag = new TabViewFragment();
         FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction().add(R.id.fragment_container, tabFrag, "tab_frag").commit();
+        fm.beginTransaction().add(R.id.tab_view_fragment_container, tabFrag, "tab_frag").commit();
 
         // Initialize fragment to display file list
         ListFileFragment frag = new ListFileFragment();
@@ -560,10 +571,17 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     private void setToolbarStyles() {
         int noFileItemsSelected = noFileItemsSelected();
 
+        HorizontalScrollView horizontalScrollView = (HorizontalScrollView) findViewById(R.id.tab_view_fragment_container);
+
+        if (horizontalScrollView == null) {
+            Log.d("NULL EXCEPTION", "horizontalScrollView is null");
+        }
+
         if (noFileItemsSelected > 0) {
             myToolbar.setTitle(noFileItemsSelected + " selected");
             myToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
             myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarSelected));
+            horizontalScrollView.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarSelected));
 
         } else {
             myToolbar.setNavigationIcon(null);
@@ -571,6 +589,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             // TODO: What should be the title when no item is selected
             myToolbar.setTitle(R.string.app_name);
             myToolbar.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarDefault));
+            horizontalScrollView.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarDefault));
         }
     }
 
@@ -579,6 +598,14 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
+        TabViewFragment tabFrag = (TabViewFragment) fm.findFragmentByTag("tab_frag");
+
+        ft.detach(tabFrag).attach(tabFrag);
+        ft.commit();
+
+
+        fm = getSupportFragmentManager();
+        ft = fm.beginTransaction();
         ListFileFragment listFrag = (ListFileFragment) fm.findFragmentByTag("pho_tag");
 
         ft.detach(listFrag).attach(listFrag);
@@ -608,7 +635,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return fileListItemsSelected;
     }
 
-    private int noFileItemsSelected() {
+    public int noFileItemsSelected() {
         return getFileItemsSelected().size();
     }
 

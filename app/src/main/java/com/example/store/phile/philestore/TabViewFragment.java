@@ -5,11 +5,13 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.TextViewCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,12 +23,6 @@ import java.util.ArrayList;
  * Created by adityasridhar on 16-09-06.
  */
 public class TabViewFragment extends Fragment {
-
-    // Need "undisturbed" path from main activity
-
-    // when a file/folder is selected, update "undisturbed" path
-
-    // also need current folder open
 
 
     private Activity mAct;
@@ -83,10 +79,14 @@ public class TabViewFragment extends Fragment {
         if (!undisturbedPath.contains(localStoragePath)) {
             return;
         }
-
-        // TODO set background of horizontal scroll view
-//        if (mAct.noItemsSelected() > 0) {
 //
+//        HorizontalScrollView hscroll = (HorizontalScrollView)mAct.findViewById(R.id.tab_view_hscroll);
+//
+//        // TODO set background of horizontal scroll view
+//        if (((MainActivity)mAct).noFileItemsSelected() > 0) {
+//            hscroll.setBackgroundColor(ContextCompat.getColor(mAct, R.color.colorToolbarSelected));
+//        } else {
+//            hscroll.setBackgroundColor(ContextCompat.getColor(mAct, R.color.colorToolbarDefault));
 //        }
 
         String tabPath = undisturbedPath.replace(localStoragePath, "");

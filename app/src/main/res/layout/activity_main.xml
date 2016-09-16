@@ -26,6 +26,17 @@
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             />
 
+        <HorizontalScrollView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorToolbarDefault"
+            android:theme="@style/MyToolbar"
+            android:id="@+id/tab_view_fragment_container"
+            >
+        </HorizontalScrollView>
+
+
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
