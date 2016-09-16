@@ -109,20 +109,22 @@ public class ListFileFragment extends ListFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 FileListItem fileListItemClicked = fileListItems.get(position);
-                String fullFilePath = fileListItemClicked.getFilePath() + fileListItemClicked.getFileName();
+                String fullFilePath = fileListItemClicked.getFullPath();
                 File fileClicked = new File(fullFilePath);
 
-                if (fileClicked.isDirectory()) {
+                Log.d("heyyy", fileClicked.toString());
+
+//                if (fileClicked.isDirectory()) {
                     try {
                         ((FileActionsListener) mAct).onFileItemClicked(fullFilePath);
                     } catch (ClassCastException cce) {
 
                     }
-                }
-
-                if (fileClicked.isFile()) {
-                    // TODO: fire intent to open file
-                }
+//                }
+//
+//                if (fileClicked.isFile()) {
+//                    // TODO: fire intent to open file
+//                }
             }
         });
 

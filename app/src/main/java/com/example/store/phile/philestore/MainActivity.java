@@ -66,8 +66,22 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     public void onFileItemClicked(String p) {
         path = p;
         undisturbedPath = p;
-        prepareFileItemsFromPath();
-        restartListFragment();
+
+        File f = new File(p);
+        Log.d("onFileItemClicked", p);
+        if (f.isDirectory()) {
+            Log.d("onFileItemClicked", "its a directory");
+            prepareFileItemsFromPath();
+            restartListFragment();
+        } else {
+            Log.d("onFileItemClicked", "its a file!!");
+            try {
+                FileOpen.openFile(getApplicationContext(), f);
+            } catch (IOException ex) {
+
+            }
+
+        }
     }
 
     /*
