@@ -410,10 +410,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     public void onBackPressed() {
         String base_path = Environment.getExternalStorageDirectory().toString();
 
-        if (path == base_path) {
-            // TODO error on back press. Fix this
+        if (normalizeFilePaths(path).equals(normalizeFilePaths(base_path))) {
             super.onBackPressed();
-            // TODO: navigate to main view
         } else {
             String newPath = "";
             if (path.length() > base_path.length()) {
@@ -448,6 +446,14 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
             return len;
         }
+    }
+
+    private String normalizeFilePaths(String path) {
+        if (!path.endsWith(File.separator)) {
+            return path + File.separator;
+        }
+
+        return path;
     }
 
     private void prepareFileItemsFromPath() {
@@ -673,6 +679,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                     creationError = "Folder name not valid";
                 }
 
+                // TODO: should use .equals
                 if (creationError != "") {
                     Toast toast = Toast.makeText(getApplicationContext(), creationError, Toast.LENGTH_SHORT);
                     toast.show();
