@@ -38,10 +38,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     private String path = Environment.getExternalStorageDirectory().toString();
     private String undisturbedPath = path;
 
-
-    private ArrayList<FileListItem> clipboard = new ArrayList<>();
-    private String clipboardOperation = "move";
-
     final private String[] sortOpts = {"Name", "Size", "Date last modified"};
     private int sortOptionIndexSelected = 0;
     boolean sortOrderIsAscending = true;
@@ -69,8 +65,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             try {
                 FileOpen.openFile(getApplicationContext(), f);
             } catch (IOException ex) {
-                Toast toast = Toast.makeText(getApplicationContext(), "Unable to open file", Toast.LENGTH_SHORT);
-                toast.show();
+                showToast("Unable to open file");
             }
         }
     }
@@ -117,10 +112,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        final ListFileFragment listFrag = getListFileFragment();
         switch (item.getItemId()) {
             case R.id.action_delete:
-                ListFileFragment listFrag = getListFileFragment();
-
                 if (listFrag == null) {
                     return true;
                 }
@@ -131,7 +125,37 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 setToolbarStyles();
                 invalidateOptionsMenu();
 
-//                // TODO: test the case where one delete fail, one pass.
+                return true;
+
+            case R.id.action_rename:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+                // TODO: Set title as rename file/folder and improve dialog box UI
+                builder.setTitle(R.string.rename_folder);
+                final EditText input = new EditText(this);
+
+                input.setText(listFrag.getFileItemsSelected().get(0).getFileName());
+                builder.setView(input);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (listFrag == null) {
+                            return;
+                        }
+
+                        listFrag.renameFileItem(input.getText().toString());
+                        undisturbedPath = path;
+                        restartListFragment();
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
 
                 return true;
 
@@ -166,6 +190,25 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                         }
                     });
                 sortDialogBldr.show();
+                return true;
+
+            case R.id.action_move:
+                listFrag.moveFileItems();
+                restartListFragment();
+                showToast("Saved " + listFrag.getClipboard().size() + " items to the clipboard");
+
+                return true;
+
+            case R.id.action_copy:
+                listFrag.copyFileItems();
+                restartListFragment();
+                showToast("Saved " + listFrag.getClipboard().size() + " items to the clipboard");
+                return true;
+
+            case R.id.action_paste:
+                listFrag.pasteFileItems();
+                restartListFragment();
+                // toast
                 return true;
 
             default:
@@ -259,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             sort.setVisible(true);
             refresh.setVisible(true);
 
-            if (clipboard.size() > 0) {
+            if (listFrag.getClipboard().size() > 0) {
                 paste.setVisible(true);
             }
         }
@@ -330,11 +373,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
         return path;
     }
-
-    private boolean renameFile(File from, File to) {
-        return from.exists() && !to.exists() && from.renameTo(to);
-    }
-
 
 
     public void copy(File src, File dst) throws IOException {
@@ -416,7 +454,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     }
 
     /*
-     * TODO: test this. dont think this is broken
      * Create folder dialog box
      */
     private void dialogInputBox() {
@@ -455,8 +492,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
                 // TODO: should use .equals
                 if (creationError != "") {
-                    Toast toast = Toast.makeText(getApplicationContext(), creationError, Toast.LENGTH_SHORT);
-                    toast.show();
+                    showToast(creationError);
                 }
 
                 // prepareFileItemsFromPath();
@@ -472,6 +508,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         builder.show();
     }
 
+    private void showToast(String text) {
+        Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
+        toast.show();
+    }
 
     // --------- Getters & setters ------------------
 

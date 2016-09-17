@@ -1,82 +1,6 @@
-            // TODO: style rename dialog box.
-            // TODO: test renaming to same folder
-            // TODO: initialize dialog input box to current folder (the one to be renamed) name
-            case R.id.action_rename:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.rename_folder);
-                final EditText input = new EditText(this);
-                builder.setView(input);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        FileListItem toBeRenamed = getFileItemsSelected().get(0);
-                        File fileToBeRenamed = new File(toBeRenamed.getFilePath() + toBeRenamed.getFileName());
-                        File fileToBeRenamedTo = new File(toBeRenamed.getFilePath() + input.getText().toString());
-                        boolean renameStatus = renameFile(fileToBeRenamed, fileToBeRenamedTo);
-
-                        if (!renameStatus) {
-                            Toast toast = Toast.makeText(getApplicationContext(), "Rename failed", Toast.LENGTH_SHORT);
-                            toast.show();
-                        } else {
-                            undisturbedPath = path;
-                            prepareFileItemsFromPath();
-                            restartListFragment();
-                        }
-                    }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
-                builder.show();
-
-                return true;
 
 
 
-
-
-
-            // TODO: test moving mixture of folders/file
-            case R.id.action_move:
-                ArrayList<FileListItem> selectedMoveItems = getFileItemsSelected();
-
-                // save selected file items in the clipboard
-                clipboard = selectedMoveItems;
-                clipboardOperation = "move";
-
-                // mark each selected item as unselected
-                for (int i = 0; i < selectedMoveItems.size(); i++) {
-                    selectedMoveItems.get(i).setIsSelected(false);
-                }
-
-                restartListFragment();
-
-                // TODO Error message when trying to move root/abc to root/abc/child_abc/
-                // TODO fire dialog to inform user about clipboard and paste operation.
-                return true;
-
-            case R.id.action_copy:
-
-                // TODO bug: copying multiple items
-                ArrayList<FileListItem> selectedCopyItems = getFileItemsSelected();
-
-                // save selected file items in the clipboard
-                clipboard = selectedCopyItems;
-                clipboardOperation = "copy";
-
-                Log.d("action_copy", clipboard.size() + "");
-
-                // mark each selected item as unselected
-                for (int i = 0; i < selectedCopyItems.size(); i++) {
-                    selectedCopyItems.get(i).setIsSelected(false);
-                }
-
-                restartListFragment();
-                return true;
 
             case R.id.action_paste:
 
@@ -116,28 +40,6 @@
                     invalidateOptionsMenu();
                 }
                 return true;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -12,13 +12,13 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,9 +35,11 @@ public class ListFileFragment extends ListFragment {
         public void onFileItemSelected(int pos);
     }
 
-
     private ArrayList<FileListItem> fileListItems = new ArrayList<>();
     private ArrayList<FileListItem> fileListItemsBuffer = new ArrayList<>();
+    private ArrayList<FileListItem> clipboard = new ArrayList<>();
+    private String clipboardOperation = "move";
+
     private ArrayAdapter<FileListItem> adapter;
     private Activity mAct;
     private FilenameFilter filter = new FilenameFilter() {
@@ -241,18 +243,94 @@ public class ListFileFragment extends ListFragment {
 
             boolean deleteStatus = deleteFile(fileToBeDeleted);
 
-            if (deleteStatus) {
-                // hack!!
-                fileItemsSelected.get(i).setIsSelected(false);
-                adapter.notifyDataSetChanged();
-            } else {
+            if (!deleteStatus) {
                 Toast toast = Toast.makeText(mAct, "Delete failed", Toast.LENGTH_SHORT);
                 toast.show();
             }
+
+            // hack!!
+            fileItemsSelected.get(i).setIsSelected(false);
+            adapter.notifyDataSetChanged();
         }
     }
 
+    public void renameFileItem(String targetFileName) {
+        ArrayList<FileListItem> fileItemsSelected = getFileItemsSelected();
+
+        FileListItem toBeRenamed = fileItemsSelected.get(0);
+        File fileToBeRenamed = new File(toBeRenamed.getFullPath());
+        File fileToBeRenamedTo = new File(normalizeFilePaths(toBeRenamed.getFilePath()) + targetFileName);
+
+        boolean renameStatus = renameFile(fileToBeRenamed, fileToBeRenamedTo);
+
+        if (!renameStatus) {
+            Toast toast = Toast.makeText(mAct, "Rename failed", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+        // hack!!
+        fileItemsSelected.get(0).setIsSelected(false);
+        adapter.notifyDataSetChanged();
+    }
+
+    public void moveFileItems() {
+        ArrayList<FileListItem> fileItemsSelected = getFileItemsSelected();
+
+        clipboard = fileItemsSelected;
+        clipboardOperation = "move";
+
+        // Mark each selected item as unselected
+        for(int i = 0; i < fileItemsSelected.size(); i++) {
+            fileItemsSelected.get(i).setIsSelected(false);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    public void copyFileItems() {
+        ArrayList<FileListItem> fileItemsSelected = getFileItemsSelected();
+
+        clipboard = fileItemsSelected;
+        clipboardOperation = "copy";
+
+        // Mark each selected item as unselected
+        for(int i = 0; i < fileItemsSelected.size(); i++) {
+            fileItemsSelected.get(i).setIsSelected(false);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    public void pasteFileItems() {
+
+
+        for(int i = 0; i < clipboard.size(); i++) {
+            FileListItem clipboardFileItem = clipboard.get(i);
+            String parentPath = normalizeFilePaths(((MainActivity) mAct).getPath());
+
+            File clipboardFile = new File(clipboardFileItem.getFullPath());
+            File targetFile = new File(parentPath + clipboardFileItem.getFileName());
+
+            if (clipboardOperation.equals("move")) {
+                Log.d("clipboardFile", clipboardFile.getAbsolutePath());
+                Log.d("targetFile", targetFile.getAbsolutePath());
+                boolean status = renameFile(clipboardFile, targetFile);
+
+                if (!status) {
+                    Toast toast = Toast.makeText(mAct, "Failed to paste " + clipboardFileItem.getFileName(), Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            } else {
+
+            }
+        }
+
+        clipboard.clear();
+    }
+
     // --- Helpers -------
+
+    private boolean renameFile(File from, File to) {
+        return from.exists() && !to.exists() && from.renameTo(to);
+    }
 
     /*
      * Helper function to delete a File object. File might be a directory, so needs to clean up
@@ -280,7 +358,6 @@ public class ListFileFragment extends ListFragment {
      * Lists all files in a directory path and formulates file item objects
      */
     private void prepareFileItemsFromPath() {
-        Log.d("prepareFileIt", "prepareFileItemsFromPath");
         fileListItemsBuffer.clear();
         String path = ((MainActivity)mAct).getPath();
 
@@ -291,7 +368,6 @@ public class ListFileFragment extends ListFragment {
         }
 
         for(int i = 0; i < files.length; i++) {
-
             // parentPath is the path of the directory the file in question is in.
             String parentPath = path;
             if (!parentPath.endsWith(File.separator)) {
@@ -308,12 +384,10 @@ public class ListFileFragment extends ListFragment {
 
         Log.d("prepareFileIt", fileListItemsBuffer.size() + "");
 
-        // TODO: renable sorting
-        // sortFileListItems();
+        sortFileListItems();
     }
 
     private void sortFileListItems() {
-        Log.d("MainActivity", "sortFileListItems called");
         int sortOptionIndexSelected = ((MainActivity)mAct).getSortOptionIndexSelected();
         boolean sortOrderIsAscending = ((MainActivity)mAct).getSortOrderIsAscending();
 
@@ -358,6 +432,14 @@ public class ListFileFragment extends ListFragment {
         }
     }
 
+    private String normalizeFilePaths(String path) {
+        if (!path.endsWith(File.separator)) {
+            return path + File.separator;
+        }
+
+        return path;
+    }
+
     // ---- Getters ---
 
     public ArrayList<FileListItem> getFileItemsSelected() {
@@ -373,5 +455,13 @@ public class ListFileFragment extends ListFragment {
 
     public int getNoFileItemsSelected() {
         return getFileItemsSelected().size();
+    }
+
+    public String getClipboardOperation() {
+        return clipboardOperation;
+    }
+
+    public ArrayList<FileListItem> getClipboard() {
+        return clipboard;
     }
 }

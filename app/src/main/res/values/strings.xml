@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">PhileStore</string>
     <string name="local_storage">Local Storage</string>
-    <string name="rename_folder">Rename folder</string>
+    <string name="rename_folder">Rename file/folder</string>
     <string name="no_file_items">Nothing here</string>
     <string name="action_rename">Rename</string>
     <string name="action_delete">Delete</string>
