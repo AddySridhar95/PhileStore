@@ -3,6 +3,13 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
@@ -12,8 +19,13 @@
         android:divider="@android:color/transparent">
     </ListView>
 
-    <LinearLayout android:id="@android:id/empty"
-        android:layout_width="fill_parent" android:layout_height="fill_parent"
+    <!-- TODO: look into using setEmptyListView instead -->
+
+    <LinearLayout
+        android:id="@android:id/empty"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone"
         android:gravity="center">
 
         <TextView android:text="@string/no_file_items"

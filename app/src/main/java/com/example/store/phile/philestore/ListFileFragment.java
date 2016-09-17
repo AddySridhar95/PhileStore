@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.File;
@@ -24,7 +26,7 @@ import java.util.List;
  * Created by adityasridhar on 16-08-31.
  */
 public class ListFileFragment extends ListFragment {
-    private ArrayList<FileListItem> fileListItems = new ArrayList<FileListItem>();
+    private ArrayList<FileListItem> fileListItems2 = new ArrayList<FileListItem>();
     private ArrayList<FileListItem> tmp = new ArrayList<FileListItem>();
     private ArrayAdapter<FileListItem> adapter;
 
@@ -57,35 +59,47 @@ public class ListFileFragment extends ListFragment {
         Log.d("ListFileFragment", "onActivityCreated");
         super.onActivityCreated(savedInstanceState);
 
-        AsyncTask a = new AsyncTask<String, Void, String>() {
 
-            public void onPreExecute() {
+//        if (((MainActivity)mAct).getPrepareFilesFromPathReqd()) {
+            AsyncTask a = new AsyncTask<String, Void, String>() {
+                ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
 
-            }
+                public void onPreExecute() {
+                    if (progress_bar != null) {
+                        progress_bar.setVisibility(View.VISIBLE);
+                    }
 
-            @Override
-            public String doInBackground(String... param) {
-                if (mAct != null && ((MainActivity)mAct).getFileListItems() != null) {
-                    ((MainActivity)mAct).prepareFileItemsFromPath();
+                    LinearLayout emptyView = (LinearLayout) getView().findViewById(android.R.id.empty);
+                    emptyView.setVisibility(View.GONE);
                 }
 
-                return "";
-            }
+                @Override
+                public String doInBackground(String... param) {
+                    if (mAct != null) {
+                        ((MainActivity)mAct).prepareFileItemsFromPath();
+                    }
 
-            protected void onPostExecute(String result) {
-                justDoIt();
-            }
-        }.execute();
+                    return "";
+                }
+
+                protected void onPostExecute(String result) {
+                    justDoIt();
+
+                    if (progress_bar != null) {
+                        progress_bar.setVisibility(View.GONE);
+                    }
+                }
+            }.execute();
+//        }
 
 
-        adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileListItems) {
+        adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileListItems2) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
 
                 // assign the view we are converting to a local variable
                 View v = convertView;
 
-                // TODO: why is this needed
                 // first check to see if the view is null. if so, we have to inflate it.
                 // to inflate it basically means to render, or show, the view.
                 if (v == null) {
@@ -93,7 +107,12 @@ public class ListFileFragment extends ListFragment {
                     v = inflater.inflate(R.layout.list_item, null);
                 }
 
-                FileListItem item = fileListItems.get(position);
+                // If file list items is empty ..
+                if (fileListItems2 == null || fileListItems2.size() == 0) {
+                    return v;
+                }
+
+                FileListItem item = fileListItems2.get(position);
                 File file = new File(item.getFullPath());
 
                 // Set list icon image
@@ -128,7 +147,7 @@ public class ListFileFragment extends ListFragment {
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                FileListItem fileListItemClicked = fileListItems.get(position);
+                FileListItem fileListItemClicked = fileListItems2.get(position);
                 String fullFilePath = fileListItemClicked.getFullPath();
 
                 try {
@@ -154,17 +173,31 @@ public class ListFileFragment extends ListFragment {
     }
 
     public void justDoIt() {
-        mAct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                fileListItems = ((MainActivity) mAct).getFileListItems();
-                adapter.notifyDataSetChanged();
-            }
-        });
+//        mAct.runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+        fileListItems2 = ((MainActivity) mAct).getFileListItems();
+        Log.d("justDOIt", fileListItems2.size() + "");
+        adapter.notifyDataSetChanged();
+//            }
+//        });
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.list_file_fragment, container, false);
+    }
+
+    @Override
+    public void onResume() {
+//        Log.d("ListFileFragment", "onResume");
+        super.onResume();
+//
+//        fileListItems2 = ((MainActivity) mAct).getFileListItems();
+//        adapter.notifyDataSetChanged();
+    }
+
+    public void communicateSomething(String param) {
+        Log.d("communicate", param);
     }
 }

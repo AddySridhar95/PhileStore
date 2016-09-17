@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     private int sortOptionIndexSelected = 0;
     boolean sortOrderIsAscending = true;
 
+    private boolean prepareFilesFromPathReqd = true;
+
     // TODO: store sort order in bundle and restore on restart
     private Toolbar myToolbar;
     private FilenameFilter filter = new FilenameFilter() {
@@ -74,9 +76,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             fileListItems.clear();
             Log.d("MainActivity", "size of fileListItems is " + fileListItems.size());
             restartListFragment();
-
-            // prepareFileItemsFromPath();
-            // restartListFragment();
         } else {
             try {
                 FileOpen.openFile(getApplicationContext(), f);
@@ -92,9 +91,20 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
      */
     @Override
     public void onFileItemSelected(int pos) {
+
         FileListItem fileItemSelected = fileListItems.get(pos);
         fileItemSelected.setIsSelected(!fileItemSelected.getIsSelected());
-        restartListFragment();
+
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ListFileFragment listFrag = (ListFileFragment) fm.findFragmentByTag("pho_tag");
+
+        listFrag.communicateSomething("Hi this is file selected method");
+
+//        prepareFilesFromPathReqd = false;
+//        restartListFragment();
+//        prepareFilesFromPathReqd = true;
     }
 
     /*
@@ -122,51 +132,13 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-
-            // TODO: style rename dialog box.
-            // TODO: test renaming to same folder
-            // TODO: initialize dialog input box to current folder (the one to be renamed) name
-            case R.id.action_rename:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.rename_folder);
-                final EditText input = new EditText(this);
-                builder.setView(input);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        FileListItem toBeRenamed = getFileItemsSelected().get(0);
-                        File fileToBeRenamed = new File(toBeRenamed.getFilePath() + toBeRenamed.getFileName());
-                        File fileToBeRenamedTo = new File(toBeRenamed.getFilePath() + input.getText().toString());
-                        boolean renameStatus = renameFile(fileToBeRenamed, fileToBeRenamedTo);
-
-                        if (!renameStatus) {
-                            Toast toast = Toast.makeText(getApplicationContext(), "Rename failed", Toast.LENGTH_SHORT);
-                            toast.show();
-                        } else {
-                            undisturbedPath = path;
-                            prepareFileItemsFromPath();
-                            restartListFragment();
-                        }
-                    }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
-                builder.show();
-
-                return true;
-
             case R.id.action_delete:
 
-                // TODO: test the case where one delete fail, one pass.
+//                // TODO: test the case where one delete fail, one pass.
                 boolean allFailed = true;
                 for (int i = 0; i < getFileItemsSelected().size(); i++) {
                     FileListItem toBeDeleted = getFileItemsSelected().get(i);
-                    File fileToBeDeleted = new File(toBeDeleted.getFilePath() + toBeDeleted.getFileName());
+                    File fileToBeDeleted = new File(toBeDeleted.getFullPath() + "failfailfaaaaail");
                     boolean deleteStatus = deleteFile(fileToBeDeleted);
 
                     if (!deleteStatus) {
@@ -186,120 +158,36 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 return true;
 
             case R.id.action_refresh:
-                prepareFileItemsFromPath();
                 restartListFragment();
-
                 return true;
 
             case R.id.action_sort:
                 AlertDialog.Builder sortDialogBldr = new AlertDialog.Builder(this);
                 sortDialogBldr.setTitle(R.string.sort_title)
-                        .setSingleChoiceItems(sortOpts, sortOptionIndexSelected, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                sortOptionIndexSelected = which;
-                            }
-                        })
-                        .setPositiveButton(R.string.ascending, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                sortOrderIsAscending = true;
-                                dialog.dismiss();
-                                prepareFileItemsFromPath();
-                                sortFileListItems();
-                                restartListFragment();
-                            }
-
-                        })
-                        .setNegativeButton(R.string.descending, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                sortOrderIsAscending = false;
-                                dialog.dismiss();
-                                prepareFileItemsFromPath();
-                                sortFileListItems();
-                                restartListFragment();
-                            }
-                        });
-                sortDialogBldr.show();
-                return true;
-
-
-            // TODO: test moving mixture of folders/file
-            case R.id.action_move:
-                ArrayList<FileListItem> selectedMoveItems = getFileItemsSelected();
-
-                // save selected file items in the clipboard
-                clipboard = selectedMoveItems;
-                clipboardOperation = "move";
-
-                // mark each selected item as unselected
-                for (int i = 0; i < selectedMoveItems.size(); i++) {
-                    selectedMoveItems.get(i).setIsSelected(false);
-                }
-
-                restartListFragment();
-
-                // TODO Error message when trying to move root/abc to root/abc/child_abc/
-                // TODO fire dialog to inform user about clipboard and paste operation.
-                return true;
-
-            case R.id.action_copy:
-
-                // TODO bug: copying multiple items
-                ArrayList<FileListItem> selectedCopyItems = getFileItemsSelected();
-
-                // save selected file items in the clipboard
-                clipboard = selectedCopyItems;
-                clipboardOperation = "copy";
-
-                Log.d("action_copy", clipboard.size() + "");
-
-                // mark each selected item as unselected
-                for (int i = 0; i < selectedCopyItems.size(); i++) {
-                    selectedCopyItems.get(i).setIsSelected(false);
-                }
-
-                restartListFragment();
-                return true;
-
-            case R.id.action_paste:
-
-                Log.d("action_paste", clipboard.size() + "");
-
-                // TODO: bug. pasting multiple items ....
-                for (int i = 0; i < clipboard.size(); i++) {
-
-                    String parentPath = path;
-                    if (!parentPath.endsWith(File.separator)) {
-                        parentPath = parentPath + File.separator;
-                    }
-
-                    File clipboardFile = new File(clipboard.get(i).getFilePath() + clipboard.get(i).getFileName());
-                    File targetFile = new File(parentPath + clipboard.get(i).getFileName());
-                    if (clipboardOperation == "move") {
-
-                        boolean moveStatus = renameFile(clipboardFile, targetFile);
-                        if (moveStatus) {
-                            prepareFileItemsFromPath();
+                    .setSingleChoiceItems(sortOpts, sortOptionIndexSelected, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            sortOptionIndexSelected = which;
+                        }
+                    })
+                    .setPositiveButton(R.string.ascending, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            sortOrderIsAscending = true;
+                            dialog.dismiss();
                             restartListFragment();
-                        } else {
-                            Toast toast = Toast.makeText(getApplicationContext(), "Move operation failed", Toast.LENGTH_SHORT);
-                            toast.show();
                         }
-                    } else {
-                        boolean copyStatus = copyFilesOrDirectories(clipboardFile, targetFile);
-                        if (copyStatus) {
-                            // prepareFileItemsFromPath();
-                            // restartListFragment();
-                        } else {
-                            Toast toast = Toast.makeText(getApplicationContext(), "Copy operation failed", Toast.LENGTH_SHORT);
-                            toast.show();
+
+                    })
+                    .setNegativeButton(R.string.descending, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            sortOrderIsAscending = false;
+                            dialog.dismiss();
+                            restartListFragment();
                         }
-                    }
-                    clipboard.clear();
-                    invalidateOptionsMenu();
-                }
+                    });
+                sortDialogBldr.show();
                 return true;
 
             default:
@@ -313,10 +201,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         super.onCreate(savedInstanceState);
 
         // populate file items list based on path
-        prepareFileItemsFromPath();
-        sortFileListItems();
+//        prepareFileItemsFromPath();
+//        sortFileListItems();
 
-        setContentView(R.layout.activity_main);
+        // TODO: first view will be one that has local storage and categories. So dont worry about local storage not loading initially
 
         // Initialize tab fragment
         TabViewFragment tabFrag = new TabViewFragment();
@@ -327,6 +215,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         ListFileFragment frag = new ListFileFragment();
         fm = getSupportFragmentManager();
         fm.beginTransaction().add(R.id.fragment_container, frag, "pho_tag").commit();
+
+        setContentView(R.layout.activity_main);
 
         // Initialize toolbar
         myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -507,6 +397,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         fileListItems.clear();
         String[] files = (new File(path)).list(filter);
 
+        if (files == null) {
+            return;
+        }
+
         // TODO: can optimize here. need not fetch file items again in sort only case
         for(int i = 0; i < files.length; i++) {
 
@@ -524,6 +418,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             fileListItems.add(fileListItem);
         }
 
+        sortFileListItems();
         Log.d("prepareFileItem", fileListItems.size() + "");
     }
 
@@ -735,6 +630,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     public String getPath() {
         return path;
+    }
+
+    public boolean getPrepareFilesFromPathReqd() {
+        return prepareFilesFromPathReqd;
     }
 }
 
