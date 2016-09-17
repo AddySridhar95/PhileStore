@@ -15,10 +15,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -26,16 +29,26 @@ import java.util.List;
  * Created by adityasridhar on 16-08-31.
  */
 public class ListFileFragment extends ListFragment {
-    private ArrayList<FileListItem> fileListItems2 = new ArrayList<FileListItem>();
-    private ArrayList<FileListItem> tmp = new ArrayList<FileListItem>();
-    private ArrayAdapter<FileListItem> adapter;
 
-    private Activity mAct;
     public interface FileActionsListener{
         public void onFileItemClicked(String itemPath);
         public void onFileItemSelected(int pos);
     }
 
+
+    private ArrayList<FileListItem> fileListItems = new ArrayList<>();
+    private ArrayList<FileListItem> fileListItemsBuffer = new ArrayList<>();
+    private ArrayAdapter<FileListItem> adapter;
+    private Activity mAct;
+    private FilenameFilter filter = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String filename) {
+            File sel = new File(dir, filename);
+
+            // Filters based on whether the file is hidden or not
+            return (sel.isFile() || sel.isDirectory()) && !sel.isHidden();
+        }
+    };
     @Override
     public void onAttach(Context c)
     {
@@ -59,41 +72,36 @@ public class ListFileFragment extends ListFragment {
         Log.d("ListFileFragment", "onActivityCreated");
         super.onActivityCreated(savedInstanceState);
 
+        AsyncTask a = new AsyncTask<String, Void, String>() {
+            ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
 
-//        if (((MainActivity)mAct).getPrepareFilesFromPathReqd()) {
-            AsyncTask a = new AsyncTask<String, Void, String>() {
-                ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
-
-                public void onPreExecute() {
-                    if (progress_bar != null) {
-                        progress_bar.setVisibility(View.VISIBLE);
-                    }
-
-                    LinearLayout emptyView = (LinearLayout) getView().findViewById(android.R.id.empty);
-                    emptyView.setVisibility(View.GONE);
+            public void onPreExecute() {
+                if (progress_bar != null) {
+                    progress_bar.setVisibility(View.VISIBLE);
                 }
 
-                @Override
-                public String doInBackground(String... param) {
-                    if (mAct != null) {
-                        ((MainActivity)mAct).prepareFileItemsFromPath();
-                    }
+//                LinearLayout emptyView = (LinearLayout) getView().findViewById(android.R.id.empty);
+//                emptyView.setVisibility(View.GONE);
+            }
 
-                    return "";
+            @Override
+            public String doInBackground(String... param) {
+                prepareFileItemsFromPath();
+
+                return "";
+            }
+
+            protected void onPostExecute(String result) {
+                justDoIt();
+
+                if (progress_bar != null) {
+                    progress_bar.setVisibility(View.GONE);
                 }
-
-                protected void onPostExecute(String result) {
-                    justDoIt();
-
-                    if (progress_bar != null) {
-                        progress_bar.setVisibility(View.GONE);
-                    }
-                }
-            }.execute();
-//        }
+            }
+        }.execute();
 
 
-        adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileListItems2) {
+        adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileListItems) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -108,11 +116,11 @@ public class ListFileFragment extends ListFragment {
                 }
 
                 // If file list items is empty ..
-                if (fileListItems2 == null || fileListItems2.size() == 0) {
+                if (fileListItems == null || fileListItems.size() == 0) {
                     return v;
                 }
 
-                FileListItem item = fileListItems2.get(position);
+                FileListItem item = fileListItems.get(position);
                 File file = new File(item.getFullPath());
 
                 // Set list icon image
@@ -147,7 +155,7 @@ public class ListFileFragment extends ListFragment {
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                FileListItem fileListItemClicked = fileListItems2.get(position);
+                FileListItem fileListItemClicked = fileListItems.get(position);
                 String fullFilePath = fileListItemClicked.getFullPath();
 
                 try {
@@ -176,8 +184,10 @@ public class ListFileFragment extends ListFragment {
 //        mAct.runOnUiThread(new Runnable() {
 //            @Override
 //            public void run() {
-        fileListItems2 = ((MainActivity) mAct).getFileListItems();
-        Log.d("justDOIt", fileListItems2.size() + "");
+
+        // TODO: Might be buggy. see if doInBackground can return the result to post method
+        fileListItems = fileListItemsBuffer;
+        Log.d("justDOIt", fileListItems.size() + "");
         adapter.notifyDataSetChanged();
 //            }
 //        });
@@ -197,7 +207,171 @@ public class ListFileFragment extends ListFragment {
 //        adapter.notifyDataSetChanged();
     }
 
-    public void communicateSomething(String param) {
-        Log.d("communicate", param);
+    /*
+     * Unselectes all file items
+     */
+    public void unselectAllFileItems() {
+        for (int i = 0; i < fileListItems.size(); i++) {
+            fileListItems.get(i).setIsSelected(false);
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    /*
+     * Selected file becomes unselected. Unselected file becomes selected
+     */
+    public void toggleFileItemSelected(int pos) {
+        if (fileListItems != null && fileListItems.size() >= pos + 1 && pos >= 0) {
+            boolean isSelected = fileListItems.get(pos).getIsSelected();
+            fileListItems.get(pos).setIsSelected(!isSelected);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    /*
+     * Deletes all file items selected.
+     */
+    public void deleteFileItems() {
+        ArrayList<FileListItem> fileItemsSelected = getFileItemsSelected();
+
+
+        for (int i = 0; i < fileItemsSelected.size(); i++) {
+            FileListItem toBeDeleted = fileItemsSelected.get(i);
+            File fileToBeDeleted = new File(toBeDeleted.getFullPath());
+
+            boolean deleteStatus = deleteFile(fileToBeDeleted);
+
+            if (deleteStatus) {
+                // hack!!
+                fileItemsSelected.get(i).setIsSelected(false);
+                adapter.notifyDataSetChanged();
+            } else {
+                Toast toast = Toast.makeText(mAct, "Delete failed", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        }
+    }
+
+    // --- Helpers -------
+
+    /*
+     * Helper function to delete a File object. File might be a directory, so needs to clean up
+     * its contents recursively
+     */
+    private boolean deleteFile(File file) {
+
+        if (!file.exists()) {
+            return false;
+        }
+
+        if (file.isDirectory()) {
+            // TODO: test (filter)
+            String[] contents = file.list(filter);
+            for (int i = 0; i < contents.length; i++) {
+
+                // TODO error handling
+                boolean a = deleteFile(new File(file.getAbsolutePath(), contents[i]));
+            }
+        }
+        return file.delete();
+    }
+
+    /*
+     * Lists all files in a directory path and formulates file item objects
+     */
+    private void prepareFileItemsFromPath() {
+        Log.d("prepareFileIt", "prepareFileItemsFromPath");
+        fileListItemsBuffer.clear();
+        String path = ((MainActivity)mAct).getPath();
+
+        String[] files = (new File(path)).list(filter);
+
+        if (files == null) {
+            return;
+        }
+
+        for(int i = 0; i < files.length; i++) {
+
+            // parentPath is the path of the directory the file in question is in.
+            String parentPath = path;
+            if (!parentPath.endsWith(File.separator)) {
+                parentPath = parentPath + File.separator;
+            }
+
+            File file = new File(parentPath + files[i]);
+            long rawSize = getRawFileSize(file);
+            Date lastModified = new Date(file.lastModified());
+            FileListItem fileListItem = new FileListItem(files[i], parentPath, rawSize, lastModified);
+
+            fileListItemsBuffer.add(fileListItem);
+        }
+
+        Log.d("prepareFileIt", fileListItemsBuffer.size() + "");
+
+        // TODO: renable sorting
+        // sortFileListItems();
+    }
+
+    private void sortFileListItems() {
+        Log.d("MainActivity", "sortFileListItems called");
+        int sortOptionIndexSelected = ((MainActivity)mAct).getSortOptionIndexSelected();
+        boolean sortOrderIsAscending = ((MainActivity)mAct).getSortOrderIsAscending();
+
+        if (sortOptionIndexSelected == 0) {
+            Collections.sort(
+                    fileListItems,
+                    sortOrderIsAscending ? FileListItem.FileNameComparatorAsc : FileListItem.FileNameComparatorDesc
+            );
+        }
+
+        if (sortOptionIndexSelected == 1) {
+            Collections.sort(
+                    fileListItems,
+                    sortOrderIsAscending ? FileListItem.FileRawSizeComparatorAsc : FileListItem.FileRawSizeComparatorDesc
+            );
+        }
+
+        if (sortOptionIndexSelected == 2) {
+            Collections.sort(
+                    fileListItems,
+                    sortOrderIsAscending ? FileListItem.FileDateComparatorAsc : FileListItem.FileDateComparatorDesc
+            );
+        }
+    }
+
+    private long getRawFileSize(File f) {
+        if (f.isFile()) {
+            return f.length();
+        } else {
+            String[] children = f.list(filter);
+            long len = 0;
+            for (int i = 0; i < children.length; i++) {
+                String parentPath = f.getAbsolutePath();
+                if (!parentPath.endsWith(File.separator)) {
+                    parentPath = parentPath + File.separator;
+                }
+
+                len = len + getRawFileSize(new File(parentPath + children[i]));
+            }
+
+            return len;
+        }
+    }
+
+    // ---- Getters ---
+
+    public ArrayList<FileListItem> getFileItemsSelected() {
+        ArrayList<FileListItem> fileListItemsSelected = new ArrayList<>();
+        for (int i = 0; i < fileListItems.size(); i++) {
+            if (fileListItems.get(i).getIsSelected()) {
+                fileListItemsSelected.add(fileListItems.get(i));
+            }
+        }
+
+        return fileListItemsSelected;
+    }
+
+    public int getNoFileItemsSelected() {
+        return getFileItemsSelected().size();
     }
 }

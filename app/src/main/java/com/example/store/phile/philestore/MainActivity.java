@@ -37,7 +37,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     private String path = Environment.getExternalStorageDirectory().toString();
     private String undisturbedPath = path;
-    private ArrayList<FileListItem> fileListItems = new ArrayList<>();
+
+
     private ArrayList<FileListItem> clipboard = new ArrayList<>();
     private String clipboardOperation = "move";
 
@@ -45,19 +46,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     private int sortOptionIndexSelected = 0;
     boolean sortOrderIsAscending = true;
 
-    private boolean prepareFilesFromPathReqd = true;
 
     // TODO: store sort order in bundle and restore on restart
     private Toolbar myToolbar;
-    private FilenameFilter filter = new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String filename) {
-            File sel = new File(dir, filename);
-
-            // Filters based on whether the file is hidden or not
-            return (sel.isFile() || sel.isDirectory()) && !sel.isHidden();
-        }
-    };
 
     // --------- Handlers --------------
 
@@ -73,16 +64,14 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         if (f.isDirectory()) {
             path = p;
             undisturbedPath = p;
-            fileListItems.clear();
-            Log.d("MainActivity", "size of fileListItems is " + fileListItems.size());
             restartListFragment();
         } else {
             try {
                 FileOpen.openFile(getApplicationContext(), f);
             } catch (IOException ex) {
-
+                Toast toast = Toast.makeText(getApplicationContext(), "Unable to open file", Toast.LENGTH_SHORT);
+                toast.show();
             }
-
         }
     }
 
@@ -92,19 +81,14 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     @Override
     public void onFileItemSelected(int pos) {
 
-        FileListItem fileItemSelected = fileListItems.get(pos);
-        fileItemSelected.setIsSelected(!fileItemSelected.getIsSelected());
+        ListFileFragment listFrag = getListFileFragment();
 
+        if (listFrag != null) {
+            listFrag.toggleFileItemSelected(pos);
+        }
 
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        ListFileFragment listFrag = (ListFileFragment) fm.findFragmentByTag("pho_tag");
-
-        listFrag.communicateSomething("Hi this is file selected method");
-
-//        prepareFilesFromPathReqd = false;
-//        restartListFragment();
-//        prepareFilesFromPathReqd = true;
+        setToolbarStyles();
+        invalidateOptionsMenu();
     }
 
     /*
@@ -114,10 +98,12 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     public void onTabItemClicked(String itemPath) {
         // update path but not undisturbedPath
         path = itemPath;
-        prepareFileItemsFromPath();
         restartListFragment();
     }
 
+    /*
+     * Inflates oveflow menu
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -133,27 +119,19 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_delete:
+                ListFileFragment listFrag = getListFileFragment();
+
+                if (listFrag == null) {
+                    return true;
+                }
+
+                listFrag.deleteFileItems();
+                undisturbedPath = path;
+                restartListFragment();
+                setToolbarStyles();
+                invalidateOptionsMenu();
 
 //                // TODO: test the case where one delete fail, one pass.
-                boolean allFailed = true;
-                for (int i = 0; i < getFileItemsSelected().size(); i++) {
-                    FileListItem toBeDeleted = getFileItemsSelected().get(i);
-                    File fileToBeDeleted = new File(toBeDeleted.getFullPath() + "failfailfaaaaail");
-                    boolean deleteStatus = deleteFile(fileToBeDeleted);
-
-                    if (!deleteStatus) {
-                        Toast toast = Toast.makeText(getApplicationContext(), "Delete failed", Toast.LENGTH_SHORT);
-                        toast.show();
-                    } else {
-                        allFailed = false;
-                    }
-                }
-
-                if (!allFailed) {
-                    undisturbedPath = path;
-                    prepareFileItemsFromPath();
-                    restartListFragment();
-                }
 
                 return true;
 
@@ -200,10 +178,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // populate file items list based on path
-//        prepareFileItemsFromPath();
-//        sortFileListItems();
-
         // TODO: first view will be one that has local storage and categories. So dont worry about local storage not loading initially
 
         // Initialize tab fragment
@@ -225,10 +199,11 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for (int i = 0; i < fileListItems.size(); i++) {
-                    fileListItems.get(i).setIsSelected(false);
-                    restartListFragment();
-                }
+                ListFileFragment listFrag = getListFileFragment();
+                listFrag.unselectAllFileItems();
+
+                setToolbarStyles();
+                invalidateOptionsMenu();
             }
         });
 
@@ -246,7 +221,13 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu){
-        ArrayList<FileListItem> itemsSelected = getFileItemsSelected();
+        ListFileFragment listFrag = getListFileFragment();
+        int noFileItemsSelected = 0;
+
+        if (listFrag != null) {
+            noFileItemsSelected = listFrag.getNoFileItemsSelected();
+        }
+
         MenuItem copy = menu.findItem(R.id.action_copy);
         copy.setVisible(false);
         MenuItem paste = menu.findItem(R.id.action_paste);
@@ -264,12 +245,12 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         MenuItem sort = menu.findItem(R.id.action_sort);
         sort.setVisible(false);
 
-        if (itemsSelected.size() == 1) {
+        if (noFileItemsSelected == 1) {
             move.setVisible(true);
             delete.setVisible(true);
             copy.setVisible(true);
             rename.setVisible(true);
-        } else if (itemsSelected.size() > 1) {
+        } else if (noFileItemsSelected > 1) {
             move.setVisible(true);
             delete.setVisible(true);
             copy.setVisible(true);
@@ -342,25 +323,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     // --------- Helpers --------------
 
-    private long getRawFileSize(File f) {
-        if (f.isFile()) {
-            return f.length();
-        } else {
-            String[] children = f.list(filter);
-            long len = 0;
-            for (int i = 0; i < children.length; i++) {
-                String parentPath = f.getAbsolutePath();
-                if (!parentPath.endsWith(File.separator)) {
-                    parentPath = parentPath + File.separator;
-                }
-
-                len = len + getRawFileSize(new File(parentPath + children[i]));
-            }
-
-            return len;
-        }
-    }
-
     private String normalizeFilePaths(String path) {
         if (!path.endsWith(File.separator)) {
             return path + File.separator;
@@ -369,80 +331,11 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return path;
     }
 
-    private void sortFileListItems() {
-        Log.d("MainActivity", "sortFileListItems called");
-        if (sortOptionIndexSelected == 0) {
-            Collections.sort(
-                    fileListItems,
-                    sortOrderIsAscending ? FileListItem.FileNameComparatorAsc : FileListItem.FileNameComparatorDesc
-            );
-        }
-
-        if (sortOptionIndexSelected == 1) {
-            Collections.sort(
-                    fileListItems,
-                    sortOrderIsAscending ? FileListItem.FileRawSizeComparatorAsc : FileListItem.FileRawSizeComparatorDesc
-            );
-        }
-
-        if (sortOptionIndexSelected == 2) {
-            Collections.sort(
-                    fileListItems,
-                    sortOrderIsAscending ? FileListItem.FileDateComparatorAsc : FileListItem.FileDateComparatorDesc
-            );
-        }
-    }
-
-    public void prepareFileItemsFromPath() {
-        fileListItems.clear();
-        String[] files = (new File(path)).list(filter);
-
-        if (files == null) {
-            return;
-        }
-
-        // TODO: can optimize here. need not fetch file items again in sort only case
-        for(int i = 0; i < files.length; i++) {
-
-            // parentPath is the path of the directory the file in question is in.
-            String parentPath = path;
-            if (!parentPath.endsWith(File.separator)) {
-                parentPath = parentPath + File.separator;
-            }
-
-            File file = new File(parentPath + files[i]);
-            long rawSize = getRawFileSize(file);
-            Date lastModified = new Date(file.lastModified());
-            FileListItem fileListItem = new FileListItem(files[i], parentPath, rawSize, lastModified);
-
-            fileListItems.add(fileListItem);
-        }
-
-        sortFileListItems();
-        Log.d("prepareFileItem", fileListItems.size() + "");
-    }
-
     private boolean renameFile(File from, File to) {
         return from.exists() && !to.exists() && from.renameTo(to);
     }
 
-    private boolean deleteFile(File file) {
 
-        if (!file.exists()) {
-            return false;
-        }
-
-        if (file.isDirectory()) {
-            // TODO: test (filter)
-            String[] contents = file.list(filter);
-            for (int i = 0; i < contents.length; i++) {
-
-                // TODO error handling
-                boolean a = deleteFile(new File(file.getAbsolutePath(), contents[i]));
-            }
-        }
-        return file.delete();
-    }
 
     public void copy(File src, File dst) throws IOException {
         InputStream in = new FileInputStream(src);
@@ -458,52 +351,20 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         out.close();
     }
 
-    private boolean copyFilesOrDirectories(File from, File to) {
-        if (!from.exists()) {
-            return false;
-        }
-
-        if (from.isDirectory()) {
-            if (!to.exists()) {
-                to.mkdir();
-            }
-
-            // TODO: test (filter)
-            String[] files = from.list(filter);
-            // Log.d("copyFilesOrDirectories", files.length + "");
-            for(int i = 0; i < files.length; i++) {
-
-                // parentPath is the path of the directory the file in question is in.
-                String parentPath = from.getAbsolutePath();
-                if (!parentPath.endsWith(File.separator)) {
-                    parentPath = parentPath + File.separator;
-                }
-
-                // TODO error handling
-                boolean a = copyFilesOrDirectories(new File(parentPath + files[i]), new File(to.getAbsolutePath(), files[i]));
-            }
-
-            Log.d("copyFilesOrDirectories", "directory!!!!");
-            return true;
-        } else {
-            Log.d("copyFilesOrDirectories", "file!!!!");
-            try {
-                copy(from, to);
-                return true;
-            } catch (IOException ex) {
-
-            }
-            return false;
-        }
-    }
 
     private void setToolbarStyles() {
-        int noFileItemsSelected = noFileItemsSelected();
+
+        // Fetch no. of file items selected
+        int noFileItemsSelected = 0;
+        ListFileFragment listFrag = getListFileFragment();
+        if (listFrag != null) {
+            noFileItemsSelected = listFrag.getNoFileItemsSelected();
+        }
 
         HorizontalScrollView horizontalScrollView = (HorizontalScrollView) findViewById(R.id.tab_view_fragment_container);
 
         if (horizontalScrollView == null) {
-            Log.d("NULL EXCEPTION", "horizontalScrollView is null");
+            return;
         }
 
         if (noFileItemsSelected > 0) {
@@ -546,22 +407,16 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         ft.commit();
     }
 
-    private ArrayList<FileListItem> getFileItemsSelected() {
-        ArrayList<FileListItem> fileListItemsSelected = new ArrayList<>();
-        for (int i = 0; i < fileListItems.size(); i++) {
-            if (fileListItems.get(i).getIsSelected()) {
-                fileListItemsSelected.add(fileListItems.get(i));
-            }
-        }
+    private ListFileFragment getListFileFragment() {
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ListFileFragment listFrag = (ListFileFragment) fm.findFragmentByTag("pho_tag");
 
-        return fileListItemsSelected;
-    }
-
-    public int noFileItemsSelected() {
-        return getFileItemsSelected().size();
+        return listFrag;
     }
 
     /*
+     * TODO: test this. dont think this is broken
      * Create folder dialog box
      */
     private void dialogInputBox() {
@@ -604,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                     toast.show();
                 }
 
-                prepareFileItemsFromPath();
+                // prepareFileItemsFromPath();
                 restartListFragment();
             }
         });
@@ -620,10 +475,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     // --------- Getters & setters ------------------
 
-    public ArrayList<FileListItem> getFileListItems() {
-        return fileListItems;
-    }
-
     public String getUndisturbedPath() {
         return undisturbedPath;
     }
@@ -632,9 +483,14 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         return path;
     }
 
-    public boolean getPrepareFilesFromPathReqd() {
-        return prepareFilesFromPathReqd;
+    public int getSortOptionIndexSelected() {
+        return sortOptionIndexSelected;
     }
+
+    public boolean getSortOrderIsAscending() {
+        return sortOrderIsAscending;
+    }
+
 }
 
 // TODO contemplate using abc_ic_menu_paste_mtrl_am_alpha as paste icon. Found it in res/values/values.xml
