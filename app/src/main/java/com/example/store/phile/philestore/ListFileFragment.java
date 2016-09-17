@@ -17,7 +17,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -244,8 +249,7 @@ public class ListFileFragment extends ListFragment {
             boolean deleteStatus = deleteFile(fileToBeDeleted);
 
             if (!deleteStatus) {
-                Toast toast = Toast.makeText(mAct, "Delete failed", Toast.LENGTH_SHORT);
-                toast.show();
+                showToast("Delete failed");
             }
 
             // hack!!
@@ -264,8 +268,7 @@ public class ListFileFragment extends ListFragment {
         boolean renameStatus = renameFile(fileToBeRenamed, fileToBeRenamedTo);
 
         if (!renameStatus) {
-            Toast toast = Toast.makeText(mAct, "Rename failed", Toast.LENGTH_SHORT);
-            toast.show();
+            showToast("Rename failed");
         }
 
         // hack!!
@@ -300,7 +303,7 @@ public class ListFileFragment extends ListFragment {
     }
 
     public void pasteFileItems() {
-
+        showToast("Hold on! This might take a while.");
 
         for(int i = 0; i < clipboard.size(); i++) {
             FileListItem clipboardFileItem = clipboard.get(i);
@@ -309,17 +312,22 @@ public class ListFileFragment extends ListFragment {
             File clipboardFile = new File(clipboardFileItem.getFullPath());
             File targetFile = new File(parentPath + clipboardFileItem.getFileName());
 
+            Log.d("clipboardFile", clipboardFile.getAbsolutePath());
+            Log.d("targetFile", targetFile.getAbsolutePath());
+
             if (clipboardOperation.equals("move")) {
-                Log.d("clipboardFile", clipboardFile.getAbsolutePath());
-                Log.d("targetFile", targetFile.getAbsolutePath());
                 boolean status = renameFile(clipboardFile, targetFile);
 
                 if (!status) {
-                    Toast toast = Toast.makeText(mAct, "Failed to paste " + clipboardFileItem.getFileName(), Toast.LENGTH_SHORT);
-                    toast.show();
+                    showToast("Failed to paste " + clipboardFileItem.getFileName());
                 }
             } else {
 
+                boolean status = copyFilesOrDirectories(clipboardFile, targetFile);
+
+                if (!status) {
+                    showToast("Failed to paste " + clipboardFileItem.getFileName());
+                }
             }
         }
 
@@ -438,6 +446,92 @@ public class ListFileFragment extends ListFragment {
         }
 
         return path;
+    }
+
+    private boolean copyFilesOrDirectories(File from, File to) {
+        if (!from.exists()) {
+            return false;
+        }
+
+        if (from.isDirectory()) {
+            if (!to.exists()) {
+                to.mkdir();
+            }
+
+            String[] files = from.list(filter);
+            // Log.d("copyFilesOrDirectories", files.length + "");
+            for(int i = 0; i < files.length; i++) {
+
+                // parentPath is the path of the directory the file in question is in.
+                String parentPath = normalizeFilePaths(from.getAbsolutePath());
+                final File fromFile = new File(parentPath + files[i]);
+                final File toFile = new File(to.getAbsolutePath(), files[i]);
+
+                boolean a = copyFilesOrDirectories(fromFile, toFile);
+
+                // TODO error handling
+
+            }
+
+            Log.d("copyFilesOrDirectories", "directory!!!!");
+            return true;
+        } else {
+            Log.d("copyFilesOrDirectories", "file!!!!");
+            final File f = from;
+            final File t = to;
+
+                AsyncTask b = new AsyncTask<String, Void, String>() {
+                    ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
+
+                    public void onPreExecute() {
+                        Log.d("async task b", "on pre execute");
+                        if (progress_bar != null) {
+                            progress_bar.setVisibility(View.VISIBLE);
+                        }
+
+                    }
+
+                    @Override
+                    public String doInBackground(String... param) {
+                        try {
+                            copy(f, t);
+                        } catch (IOException ex) {
+                            // TODO toast
+                        }
+                        return "";
+                    }
+
+                    protected void onPostExecute(String result) {
+                        // justDoIt();
+                        Log.d("async task b", "on post execute");
+
+                        if (progress_bar != null) {
+                            progress_bar.setVisibility(View.GONE);
+                        }
+                    }
+                }.execute();
+
+                return true;
+        }
+    }
+
+    private void copy(File src, File dst) throws IOException {
+        InputStream in = new FileInputStream(src);
+        OutputStream out = new FileOutputStream(dst);
+
+        // Transfer bytes from in to out
+        byte[] buf = new byte[1024];
+        int len;
+        while ((len = in.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+        in.close();
+        out.close();
+    }
+
+    private void showToast(String text) {
+        Toast toast = Toast.makeText(mAct, text, Toast.LENGTH_SHORT);
+        toast.show();
     }
 
     // ---- Getters ---

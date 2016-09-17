@@ -208,7 +208,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             case R.id.action_paste:
                 listFrag.pasteFileItems();
                 restartListFragment();
-                // toast
                 return true;
 
             default:
