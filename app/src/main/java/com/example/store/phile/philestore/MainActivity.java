@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             Log.d("MainActivity", "size of fileListItems is " + fileListItems.size());
             restartListFragment();
 
-            prepareFileItemsFromPath();
+            // prepareFileItemsFromPath();
             // restartListFragment();
         } else {
             try {
@@ -503,7 +503,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         }
     }
 
-    private void prepareFileItemsFromPath() {
+    public void prepareFileItemsFromPath() {
         fileListItems.clear();
         String[] files = (new File(path)).list(filter);
 
@@ -523,6 +523,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
             fileListItems.add(fileListItem);
         }
+
+        Log.d("prepareFileItem", fileListItems.size() + "");
     }
 
     private boolean renameFile(File from, File to) {

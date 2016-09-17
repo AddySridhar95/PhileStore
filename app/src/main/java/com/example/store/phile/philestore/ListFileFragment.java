@@ -2,6 +2,7 @@ package com.example.store.phile.philestore;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
@@ -24,6 +25,7 @@ import java.util.List;
  */
 public class ListFileFragment extends ListFragment {
     private ArrayList<FileListItem> fileListItems = new ArrayList<FileListItem>();
+    private ArrayList<FileListItem> tmp = new ArrayList<FileListItem>();
     private ArrayAdapter<FileListItem> adapter;
 
     private Activity mAct;
@@ -52,11 +54,29 @@ public class ListFileFragment extends ListFragment {
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        Log.d("ListFileFragment", "onActivityCreated");
         super.onActivityCreated(savedInstanceState);
 
-        if (mAct != null && ((MainActivity)mAct).getFileListItems() != null) {
-            fileListItems = ((MainActivity)mAct).getFileListItems();
-        }
+        AsyncTask a = new AsyncTask<String, Void, String>() {
+
+            public void onPreExecute() {
+
+            }
+
+            @Override
+            public String doInBackground(String... param) {
+                if (mAct != null && ((MainActivity)mAct).getFileListItems() != null) {
+                    ((MainActivity)mAct).prepareFileItemsFromPath();
+                }
+
+                return "";
+            }
+
+            protected void onPostExecute(String result) {
+                justDoIt();
+            }
+        }.execute();
+
 
         adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileListItems) {
             @Override
@@ -129,6 +149,16 @@ public class ListFileFragment extends ListFragment {
                 }
 
                 return true;
+            }
+        });
+    }
+
+    public void justDoIt() {
+        mAct.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                fileListItems = ((MainActivity) mAct).getFileListItems();
+                adapter.notifyDataSetChanged();
             }
         });
     }
