@@ -36,7 +36,6 @@
             >
         </HorizontalScrollView>
 
-
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton

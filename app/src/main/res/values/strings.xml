@@ -16,4 +16,6 @@
     <string name="sort_title">Sort by</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
+    <string name="hint_search">Filter results</string>
+    <string name="action_search">Search</string>
 </resources>

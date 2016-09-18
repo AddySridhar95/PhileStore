@@ -1,7 +1,10 @@
 package com.example.store.phile.philestore;
 
 import android.Manifest;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -12,6 +15,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -102,6 +106,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
         return true;
     }
@@ -210,6 +218,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 restartListFragment();
                 return true;
 
+            case R.id.action_search:
+                // onSearchRequested();
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
 
@@ -286,6 +298,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         groupBy.setVisible(false);
         MenuItem sort = menu.findItem(R.id.action_sort);
         sort.setVisible(false);
+        MenuItem search = menu.findItem(R.id.action_search);
+        search.setVisible(false);
 
         if (noFileItemsSelected == 1) {
             move.setVisible(true);
@@ -300,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             groupBy.setVisible(true);
             sort.setVisible(true);
             refresh.setVisible(true);
-
+            search.setVisible(true);
             if (listFrag.getClipboard().size() > 0) {
                 paste.setVisible(true);
             }
@@ -320,6 +334,22 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         } else {
             // fireListFilesIntent();
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            Toast.makeText(this, "Searching by: "+ query, Toast.LENGTH_SHORT).show();
+
+        }
+//
+//        else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+//            String uri = intent.getDataString();
+//            Toast.makeText(this, "Suggestion: "+ uri, Toast.LENGTH_SHORT).show();
+//        }
     }
 
     @Override
