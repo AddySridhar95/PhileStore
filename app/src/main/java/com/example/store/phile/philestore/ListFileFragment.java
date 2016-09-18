@@ -155,6 +155,7 @@ public class ListFileFragment extends ListFragment {
                 sizeText.setText(getFileSizeText(file));
                 return v;
             }
+
         };
 
         setListAdapter(adapter);
@@ -351,7 +352,6 @@ public class ListFileFragment extends ListFragment {
         }
 
         if (file.isDirectory()) {
-            // TODO: test (filter)
             String[] contents = file.list(filter);
             for (int i = 0; i < contents.length; i++) {
 

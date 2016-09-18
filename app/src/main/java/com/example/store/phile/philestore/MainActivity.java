@@ -52,6 +52,17 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     // --------- Handlers --------------
 
+    @Override
+    public void startActivity(Intent intent) {
+        Log.d("MainActivity", "startActivity");
+        // check if search intent
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            intent.putExtra("PATH", path);
+        }
+
+        super.startActivity(intent);
+    }
+
     /*
      * Called when a file item is clicked
      */
@@ -336,21 +347,21 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         }
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            Toast.makeText(this, "Searching by: "+ query, Toast.LENGTH_SHORT).show();
-
-        }
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
 //
-//        else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
-//            String uri = intent.getDataString();
-//            Toast.makeText(this, "Suggestion: "+ uri, Toast.LENGTH_SHORT).show();
+//        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+//            String query = intent.getStringExtra(SearchManager.QUERY);
+//            Toast.makeText(this, "Searching by: "+ query, Toast.LENGTH_SHORT).show();
+//
 //        }
-    }
+////
+////        else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+////            String uri = intent.getDataString();
+////            Toast.makeText(this, "Suggestion: "+ uri, Toast.LENGTH_SHORT).show();
+////        }
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
