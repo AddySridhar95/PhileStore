@@ -17,6 +17,8 @@
         android:layout_height="?attr/actionBarSize"
         android:orientation="horizontal"
         android:background="@color/colorToolbarDefault"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
         >
         <!-- Insert back arrow and a text that says Showing results for "..." -->
         <TextView

@@ -79,36 +79,6 @@ public class ListFileFragment extends ListFragment {
         Log.d("ListFileFragment", "onActivityCreated");
         super.onActivityCreated(savedInstanceState);
 
-        AsyncTask a = new AsyncTask<String, Void, String>() {
-            ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
-
-            public void onPreExecute() {
-                if (progress_bar != null) {
-                    Log.d("NULLLL", "Progress bar is null");
-                    progress_bar.setVisibility(View.VISIBLE);
-                }
-
-//                LinearLayout emptyView = (LinearLayout) getView().findViewById(android.R.id.empty);
-//                emptyView.setVisibility(View.GONE);
-            }
-
-            @Override
-            public String doInBackground(String... param) {
-                prepareFileItemsFromPath();
-
-                return "";
-            }
-
-            protected void onPostExecute(String result) {
-                updateFileListItems();
-
-                if (progress_bar != null) {
-                    progress_bar.setVisibility(View.GONE);
-                }
-            }
-        }.execute();
-
-
         adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileListItems) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -187,6 +157,35 @@ public class ListFileFragment extends ListFragment {
                 return true;
             }
         });
+
+        AsyncTask a = new AsyncTask<String, Void, String>() {
+            ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
+
+            public void onPreExecute() {
+                if (progress_bar != null) {
+                    Log.d("NULLLL", "Progress bar is null");
+                    progress_bar.setVisibility(View.VISIBLE);
+                }
+
+                fileListItems.clear();
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public String doInBackground(String... param) {
+                prepareFileItemsFromPath();
+
+                return "";
+            }
+
+            protected void onPostExecute(String result) {
+                updateFileListItems();
+
+                if (progress_bar != null) {
+                    progress_bar.setVisibility(View.GONE);
+                }
+            }
+        }.execute();
     }
 
     public void updateFileListItems() {
@@ -203,11 +202,7 @@ public class ListFileFragment extends ListFragment {
 
     @Override
     public void onResume() {
-//        Log.d("ListFileFragment", "onResume");
         super.onResume();
-//
-//        fileListItems2 = ((MainActivity) mAct).getFileListItems();
-//        adapter.notifyDataSetChanged();
     }
 
     /*
@@ -397,21 +392,21 @@ public class ListFileFragment extends ListFragment {
 
         if (sortOptionIndexSelected == 0) {
             Collections.sort(
-                    fileListItems,
+                    fileListItemsBuffer,
                     sortOrderIsAscending ? FileListItem.FileNameComparatorAsc : FileListItem.FileNameComparatorDesc
             );
         }
 
         if (sortOptionIndexSelected == 1) {
             Collections.sort(
-                    fileListItems,
+                    fileListItemsBuffer,
                     sortOrderIsAscending ? FileListItem.FileRawSizeComparatorAsc : FileListItem.FileRawSizeComparatorDesc
             );
         }
 
         if (sortOptionIndexSelected == 2) {
             Collections.sort(
-                    fileListItems,
+                    fileListItemsBuffer,
                     sortOrderIsAscending ? FileListItem.FileDateComparatorAsc : FileListItem.FileDateComparatorDesc
             );
         }

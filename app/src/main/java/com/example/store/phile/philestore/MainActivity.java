@@ -222,6 +222,8 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             undisturbedPath = savedInstanceState.getString("UNDISTURBED_PATH");
             sortOptionIndexSelected = savedInstanceState.getInt("SORT_OPTION");
             sortOrderIsAscending = savedInstanceState.getBoolean("SORT_IS_ASCENDING");
+
+            // TODO: do i need to get rid of savedInstanceState?
             savedInstanceState.remove("UNDISTURBED_PATH");
             savedInstanceState.remove("PATH");
             savedInstanceState.remove("SORT_OPTION");
