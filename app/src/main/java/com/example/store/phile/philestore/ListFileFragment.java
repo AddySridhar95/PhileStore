@@ -84,6 +84,7 @@ public class ListFileFragment extends ListFragment {
 
             public void onPreExecute() {
                 if (progress_bar != null) {
+                    Log.d("NULLLL", "Progress bar is null");
                     progress_bar.setVisibility(View.VISIBLE);
                 }
 
@@ -99,7 +100,7 @@ public class ListFileFragment extends ListFragment {
             }
 
             protected void onPostExecute(String result) {
-                justDoIt();
+                updateFileListItems();
 
                 if (progress_bar != null) {
                     progress_bar.setVisibility(View.GONE);
@@ -188,17 +189,11 @@ public class ListFileFragment extends ListFragment {
         });
     }
 
-    public void justDoIt() {
-//        mAct.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-
-        // TODO: Might be buggy. see if doInBackground can return the result to post method
-        fileListItems = fileListItemsBuffer;
-        Log.d("justDOIt", fileListItems.size() + "");
+    public void updateFileListItems() {
+        Log.d("this is the thing", fileListItemsBuffer.size() + "");
+        fileListItems.clear();
+        fileListItems.addAll(fileListItemsBuffer);
         adapter.notifyDataSetChanged();
-//            }
-//        });
     }
 
     @Override
@@ -392,6 +387,7 @@ public class ListFileFragment extends ListFragment {
 
         Log.d("prepareFileIt", fileListItemsBuffer.size() + "");
 
+        // TODO: bug. sort should sort fileListItemsBuffer and not fileListItems ???
         sortFileListItems();
     }
 
@@ -496,15 +492,12 @@ public class ListFileFragment extends ListFragment {
                         try {
                             copy(f, t);
                         } catch (IOException ex) {
-                            // TODO toast
+                            showToast("Unable to copy file");
                         }
                         return "";
                     }
 
                     protected void onPostExecute(String result) {
-                        // justDoIt();
-                        Log.d("async task b", "on post execute");
-
                         if (progress_bar != null) {
                             progress_bar.setVisibility(View.GONE);
                         }

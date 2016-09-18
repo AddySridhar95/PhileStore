@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -26,6 +27,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -110,6 +112,7 @@ public class SearchableActivity extends ListActivity {
 
             AsyncTask a = new AsyncTask<String, Void, String>() {
                 ProgressBar progress_bar = (ProgressBar) findViewById(R.id.search_progress_bar);
+                TextView searchHeading = (TextView) findViewById(R.id.search_heading);
 
                 public void onPreExecute() {
                     searchResultsTmp.clear();
@@ -134,6 +137,10 @@ public class SearchableActivity extends ListActivity {
                     Log.d("searchResults received", searchResults.size() + "");
                     if (progress_bar != null) {
                         progress_bar.setVisibility(View.GONE);
+                    }
+
+                    if (searchHeading != null) {
+                        searchHeading.setText(String.format(getResources().getString(R.string.search_heading), searchResults.size(), query));
                     }
                 }
             }.execute();
@@ -183,6 +190,37 @@ public class SearchableActivity extends ListActivity {
         };
 
         setListAdapter(adapter);
+
+        getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                SearchResultItem itemClicked = searchResults.get(position);
+                String fullFilePath = itemClicked.getPathName();
+
+                File f = new File(fullFilePath);
+
+                if (f.isFile()) {
+                    try {
+                        FileOpen.openFile(getApplicationContext(), f);
+                    } catch (IOException ex) {
+                        showToast("Unable to open file");
+                    }
+                } else {
+                    sendMainActivityIntent(itemClicked.getPathName());
+                }
+//                try {
+//                    ((FileActionsListener) mAct).onFileItemClicked(fullFilePath);
+//                } catch (ClassCastException cce) {
+//
+//                }
+            }
+        });
+    }
+
+    private void sendMainActivityIntent(String fullPath) {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("SEARCH_PATH", fullPath);
+        startActivity(intent);
     }
 
     private void showToast(String text) {

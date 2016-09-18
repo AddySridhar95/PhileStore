@@ -24,6 +24,12 @@ import java.util.ArrayList;
  */
 public class TabViewFragment extends Fragment {
 
+    // Need "undisturbed" path from main activity
+
+    // when a file/folder is selected, update "undisturbed" path
+
+    // also need current folder open
+
 
     private Activity mAct;
     public interface TabActionsListener{
@@ -86,7 +92,7 @@ public class TabViewFragment extends Fragment {
 //        if (((MainActivity)mAct).noFileItemsSelected() > 0) {
 //            hscroll.setBackgroundColor(ContextCompat.getColor(mAct, R.color.colorToolbarSelected));
 //        } else {
-//            hscroll.setBackgroundColor(ContextCompat.getColor(mAct, R.color.colorToolbarDefault));
+//            hscroll.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarDefault));
 //        }
 
         String tabPath = undisturbedPath.replace(localStoragePath, "");

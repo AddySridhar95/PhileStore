@@ -16,12 +16,17 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:orientation="horizontal"
-        android:background="@color/colorToolbarDefault">
+        android:background="@color/colorToolbarDefault"
+        >
         <!-- Insert back arrow and a text that says Showing results for "..." -->
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="aditya"/>
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:layout_gravity="center_vertical"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:id="@+id/search_heading"/>
     </LinearLayout>
 
     <ProgressBar

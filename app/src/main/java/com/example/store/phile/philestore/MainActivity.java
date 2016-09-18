@@ -18,9 +18,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.Toast;
@@ -127,7 +129,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     /*
      * Called when a menu option is selected
-     * TODO: normalize calling of restartListFragment.
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -147,35 +148,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 return true;
 
             case R.id.action_rename:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-                // TODO: Set title as rename file/folder and improve dialog box UI
-                builder.setTitle(R.string.rename_folder);
-                final EditText input = new EditText(this);
-
-                input.setText(listFrag.getFileItemsSelected().get(0).getFileName());
-                builder.setView(input);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (listFrag == null) {
-                            return;
-                        }
-
-                        listFrag.renameFileItem(input.getText().toString());
-                        undisturbedPath = path;
-                        restartListFragment();
-                    }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
-                builder.show();
-
+                showRenameDialog();
                 return true;
 
             case R.id.action_refresh:
@@ -241,18 +214,42 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("MainActivity", "onCreate");
         super.onCreate(savedInstanceState);
 
-        // TODO: first view will be one that has local storage and categories. So dont worry about local storage not loading initially
+        if (savedInstanceState != null) {
+            path = savedInstanceState.getString("PATH");
+            undisturbedPath = savedInstanceState.getString("UNDISTURBED_PATH");
+            sortOptionIndexSelected = savedInstanceState.getInt("SORT_OPTION");
+            sortOrderIsAscending = savedInstanceState.getBoolean("SORT_IS_ASCENDING");
+            savedInstanceState.remove("UNDISTURBED_PATH");
+            savedInstanceState.remove("PATH");
+            savedInstanceState.remove("SORT_OPTION");
+            savedInstanceState.remove("SORT_IS_ASCENDING");
+        }
+
+        initializeSearchPath();
 
         // Initialize tab fragment
         TabViewFragment tabFrag = new TabViewFragment();
         FragmentManager fm = getSupportFragmentManager();
+
+        // If fragment was already added to the fragment container, remove it before adding it again
+        if (fm.findFragmentById(R.id.tab_view_fragment_container) != null) {
+            fm.beginTransaction().remove(fm.findFragmentById(R.id.tab_view_fragment_container)).commit();
+        }
+
         fm.beginTransaction().add(R.id.tab_view_fragment_container, tabFrag, "tab_frag").commit();
 
         // Initialize fragment to display file list
         ListFileFragment frag = new ListFileFragment();
         fm = getSupportFragmentManager();
+
+        // If fragment was already added to the fragment container, remove it before adding it again
+        if (fm.findFragmentById(R.id.fragment_container) != null) {
+            fm.beginTransaction().remove(fm.findFragmentById(R.id.fragment_container)).commit();
+        }
+
         fm.beginTransaction().add(R.id.fragment_container, frag, "pho_tag").commit();
 
         setContentView(R.layout.activity_main);
@@ -277,11 +274,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    dialogInputBox();
+                    showCreateDialog();
                 }
             });
         }
-
     }
 
     @Override
@@ -347,21 +343,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         }
     }
 
-//    @Override
-//    protected void onNewIntent(Intent intent) {
-//        super.onNewIntent(intent);
-//
-//        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-//            String query = intent.getStringExtra(SearchManager.QUERY);
-//            Toast.makeText(this, "Searching by: "+ query, Toast.LENGTH_SHORT).show();
-//
-//        }
-////
-////        else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
-////            String uri = intent.getDataString();
-////            Toast.makeText(this, "Suggestion: "+ uri, Toast.LENGTH_SHORT).show();
-////        }
-//    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -404,6 +386,18 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state
+        savedInstanceState.putString("PATH", path);
+        savedInstanceState.putString("UNDISTURBED_PATH", undisturbedPath);
+        savedInstanceState.putInt("SORT_OPTION", sortOptionIndexSelected);
+        savedInstanceState.putBoolean("SORT_IS_ASCENDING", sortOrderIsAscending);
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
     // --------- Helpers --------------
 
     private String normalizeFilePaths(String path) {
@@ -415,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     }
 
 
-    public void copy(File src, File dst) throws IOException {
+    private void copy(File src, File dst) throws IOException {
         InputStream in = new FileInputStream(src);
         OutputStream out = new FileOutputStream(dst);
 
@@ -496,11 +490,21 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     /*
      * Create folder dialog box
      */
-    private void dialogInputBox() {
+    private void showCreateDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create folder");
-        final EditText input = new EditText(this);
-        builder.setView(input);
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        final View view = inflater.inflate(R.layout.alert_label_editor, null);
+        builder.setView(view);
+
+
+        final EditText input = (EditText) view.findViewById(R.id.alert_dialog_edit);
+
+        if (input == null) {
+            return;
+        }
+
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -548,9 +552,57 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         builder.show();
     }
 
+    private void showRenameDialog() {
+        final ListFileFragment listFrag = getListFileFragment();
+
+        AlertDialog.Builder bldr = new AlertDialog.Builder(this);
+        bldr.setTitle("Rename folder");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        final View view = inflater.inflate(R.layout.rename_alert_dialog, null);
+        bldr.setView(view);
+
+        final EditText input = (EditText) view.findViewById(R.id.alert_dialog_edit);
+
+
+        if (input == null) {
+            return;
+        }
+
+        input.setText(listFrag.getFileItemsSelected().get(0).getFileName());
+
+        bldr.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (listFrag == null) {
+                    return;
+                }
+
+                listFrag.renameFileItem(input.getText().toString());
+                undisturbedPath = path;
+                restartListFragment();
+            }
+        });
+        bldr.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        bldr.show();
+    }
+
     private void showToast(String text) {
         Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    private void initializeSearchPath() {
+        if (getIntent() != null && getIntent().getStringExtra("SEARCH_PATH") != null) {
+            path = getIntent().getStringExtra("SEARCH_PATH");
+            undisturbedPath = path;
+        }
     }
 
     // --------- Getters & setters ------------------
@@ -572,5 +624,3 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
     }
 
 }
-
-// TODO contemplate using abc_ic_menu_paste_mtrl_am_alpha as paste icon. Found it in res/values/values.xml

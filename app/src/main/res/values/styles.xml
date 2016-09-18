@@ -23,6 +23,9 @@
 
     <style name="MyToolbar" parent="Theme.AppCompat.Light">
 
+        <item name="colorControlActivated">@color/colorToolbarDefault</item>
+        <item name="colorControlHighlight">@color/colorToolbarDefault</item>
+
         <item name="android:textColorSecondary">@color/white</item>
 
         <!-- navigation icon color -->
