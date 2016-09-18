@@ -5,6 +5,7 @@ import android.app.ListActivity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,10 +20,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -38,7 +38,6 @@ public class SearchableActivity extends ListActivity {
     private String path = Environment.getExternalStorageDirectory().toString();
     private ArrayList<SearchResultItem> allFiles = new ArrayList<>();
 
-    // TODO clear this at some point
     private ArrayList<SearchResultItem> searchResults = new ArrayList<>();
     private ArrayList<SearchResultItem> searchResultsTmp = new ArrayList<>();
     private ArrayAdapter<SearchResultItem> adapter;
@@ -142,7 +141,7 @@ public class SearchableActivity extends ListActivity {
     }
 
     public void initializeAdapter() {
-        adapter = new ArrayAdapter<SearchResultItem>(this, R.layout.search_result_list_item, searchResults) {
+        adapter = new ArrayAdapter<SearchResultItem>(this, R.layout.list_item, searchResults) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -153,18 +152,30 @@ public class SearchableActivity extends ListActivity {
                 // to inflate it basically means to render, or show, the view.
                 if (v == null) {
                     LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    v = inflater.inflate(R.layout.search_result_list_item, null);
+                    v = inflater.inflate(R.layout.list_item, null);
                 }
 
                 // If file list items is empty ..
                 if (searchResults == null || searchResults.size() == 0) {
-                    Log.d("aaaa", "search results empty");
                     return v;
                 }
 
-                // Set list icon image
-                TextView listItem = (TextView) v.findViewById(R.id.search_result_list_item);
+                File file = new File(searchResults.get(position).getPathName());
+
+                // Set list heading
+                TextView listItem = (TextView) v.findViewById(R.id.list_heading);
                 listItem.setText(searchResults.get(position).getFileName());
+
+                // Set icon image
+                ImageView iconImg = (ImageView) v.findViewById(R.id.list_icon);
+                iconImg.setImageResource(R.drawable.file_512_512);
+                if (file.isDirectory()) {
+                    iconImg.setImageResource(R.drawable.folder_512_512);
+                }
+
+                // Hide sub heading
+                RelativeLayout subHeading = (RelativeLayout) v.findViewById(R.id.list_sub_heading);
+                subHeading.setVisibility(View.GONE);
 
                 return v;
             }

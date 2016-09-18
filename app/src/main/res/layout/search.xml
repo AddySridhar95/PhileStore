@@ -35,6 +35,22 @@
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:divider="@android:color/transparent"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"/>
+
+    <LinearLayout
+        android:id="@android:id/empty"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone"
+        android:gravity="center">
+
+        <TextView android:text="@string/no_file_items"
+            android:layout_width="wrap_content" android:layout_height="wrap_content">
+        </TextView>
+
+    </LinearLayout>
 
 </LinearLayout>
