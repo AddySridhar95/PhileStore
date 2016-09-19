@@ -90,7 +90,7 @@ public class FileListItem {
             String name1 = item1.getFileName();
             String name2 = item2.getFileName();
 
-            return name1.compareTo(name2);
+            return name1.toLowerCase().compareTo(name2.toLowerCase());
         }
     };
 
