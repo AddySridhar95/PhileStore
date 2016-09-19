@@ -38,21 +38,10 @@
         app:showAsAction="always"
         app:actionViewClass="android.support.v7.widget.SearchView"/>
 
-    <item android:id="@+id/action_group_by"
-    android:title="@string/action_group_by"
-    app:showAsAction="never"/>
-
     <item android:id="@+id/action_sort"
     android:title="@string/action_sort"
     app:showAsAction="never"/>
 
-    <!--<item android:id="@+id/action_properties"-->
-    <!--android:title="@string/action_properties"-->
-    <!--app:showAsAction="never"/>-->
-
-    <!--<item android:id="@+id/action_compress"-->
-    <!--android:title="@string/action_compress"-->
-    <!--app:showAsAction="never"/>-->
 </menu>
 
 <!--

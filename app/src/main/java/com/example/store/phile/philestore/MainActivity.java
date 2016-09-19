@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.Toast;
@@ -30,13 +29,9 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity implements ListFileFragment.FileActionsListener, TabViewFragment.TabActionsListener {
@@ -222,12 +217,12 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             undisturbedPath = savedInstanceState.getString("UNDISTURBED_PATH");
             sortOptionIndexSelected = savedInstanceState.getInt("SORT_OPTION");
             sortOrderIsAscending = savedInstanceState.getBoolean("SORT_IS_ASCENDING");
-
-            // TODO: do i need to get rid of savedInstanceState?
-            savedInstanceState.remove("UNDISTURBED_PATH");
-            savedInstanceState.remove("PATH");
-            savedInstanceState.remove("SORT_OPTION");
-            savedInstanceState.remove("SORT_IS_ASCENDING");
+//
+//            // TODO: do i need to get rid of savedInstanceState?
+//            savedInstanceState.remove("UNDISTURBED_PATH");
+//            savedInstanceState.remove("PATH");
+//            savedInstanceState.remove("SORT_OPTION");
+//            savedInstanceState.remove("SORT_IS_ASCENDING");
         }
 
         initializeSearchPath();
@@ -303,8 +298,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         rename.setVisible(false);
         MenuItem move = menu.findItem(R.id.action_move);
         move.setVisible(false);
-        MenuItem groupBy = menu.findItem(R.id.action_group_by);
-        groupBy.setVisible(false);
         MenuItem sort = menu.findItem(R.id.action_sort);
         sort.setVisible(false);
         MenuItem search = menu.findItem(R.id.action_search);
@@ -320,7 +313,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             delete.setVisible(true);
             copy.setVisible(true);
         } else {
-            groupBy.setVisible(true);
             sort.setVisible(true);
             refresh.setVisible(true);
             search.setVisible(true);
@@ -337,11 +329,10 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
         super.onResume();
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-        // TODO check for the case when permissions are required: are the files loaded prematurely?
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         } else {
-            // fireListFilesIntent();
+            restartListFragment();
         }
     }
 
@@ -354,12 +345,13 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
+                    Log.d("PERMISSON", "accepted");
                     // permission granted!
                     // TODO: fix this bug. This should be uncommented. Test the case when permissions are not granted
                     // fireListFilesIntent();
                 } else {
                     // TODO: permission denied ... quit app?
-                    Log.d("MainActivity", "Permission denied");
+                    Log.d("PERMISSON", "Permission denied");
                 }
 
                 return;
@@ -529,19 +521,16 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
                         }
 
                     } else {
-                        // TODO: item already exists, do you want to replace dialog
                         creationError = "Folder already exists";
                     }
                 } else {
                     creationError = "Folder name not valid";
                 }
 
-                // TODO: should use .equals
-                if (creationError != "") {
+                if (!creationError.equals("")) {
                     showToast(creationError);
                 }
 
-                // prepareFileItemsFromPath();
                 restartListFragment();
             }
         });

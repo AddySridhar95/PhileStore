@@ -160,11 +160,15 @@ public class ListFileFragment extends ListFragment {
 
         AsyncTask a = new AsyncTask<String, Void, String>() {
             ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
+            TextView empty_list_text = (TextView) getView().findViewById(R.id.empty_list_text);
 
             public void onPreExecute() {
                 if (progress_bar != null) {
-                    Log.d("NULLLL", "Progress bar is null");
                     progress_bar.setVisibility(View.VISIBLE);
+                }
+
+                if (empty_list_text != null) {
+                    empty_list_text.setVisibility(View.GONE);
                 }
 
                 fileListItems.clear();
@@ -183,6 +187,10 @@ public class ListFileFragment extends ListFragment {
 
                 if (progress_bar != null) {
                     progress_bar.setVisibility(View.GONE);
+                }
+
+                if (empty_list_text != null) {
+                    empty_list_text.setVisibility(View.VISIBLE);
                 }
             }
         }.execute();
