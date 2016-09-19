@@ -307,6 +307,11 @@ public class ListFileFragment extends ListFragment {
             File clipboardFile = new File(clipboardFileItem.getFullPath());
             File targetFile = new File(parentPath + clipboardFileItem.getFileName());
 
+            if (targetFile.exists()) {
+                showToast("Target file/folder already exists here");
+                continue;
+            }
+
             if (clipboardOperation.equals("move")) {
                 boolean status = renameFile(clipboardFile, targetFile);
 

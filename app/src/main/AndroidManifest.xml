@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.store.phile.philestore">
+    package="com.example.store.phile.philestore"
+    android:versionName="">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
