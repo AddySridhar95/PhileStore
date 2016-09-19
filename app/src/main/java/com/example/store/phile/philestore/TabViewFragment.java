@@ -41,8 +41,6 @@ public class TabViewFragment extends Fragment {
     {
         super.onAttach(c);
         mAct = c instanceof Activity ? (Activity) c : null;
-
-        Log.d("ListFileFragment", mAct == null ? "is null" : "not null");
     }
 
     @Override
@@ -85,15 +83,6 @@ public class TabViewFragment extends Fragment {
         if (!undisturbedPath.contains(localStoragePath)) {
             return;
         }
-//
-//        HorizontalScrollView hscroll = (HorizontalScrollView)mAct.findViewById(R.id.tab_view_hscroll);
-//
-//        // TODO set background of horizontal scroll view
-//        if (((MainActivity)mAct).noFileItemsSelected() > 0) {
-//            hscroll.setBackgroundColor(ContextCompat.getColor(mAct, R.color.colorToolbarSelected));
-//        } else {
-//            hscroll.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorToolbarDefault));
-//        }
 
         String tabPath = undisturbedPath.replace(localStoragePath, "");
         String[] items = tabPath.split(File.separator);

@@ -55,7 +55,6 @@ public class SearchableActivity extends ListActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d("onCreate .... ", "oncccc");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.search);
 
@@ -134,7 +133,6 @@ public class SearchableActivity extends ListActivity {
 
                     adapter.notifyDataSetChanged();
 
-                    Log.d("searchResults received", searchResults.size() + "");
                     if (progress_bar != null) {
                         progress_bar.setVisibility(View.GONE);
                     }

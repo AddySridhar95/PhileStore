@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     @Override
     public void startActivity(Intent intent) {
-        Log.d("MainActivity", "startActivity");
         // check if search intent
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             intent.putExtra("PATH", path);
@@ -209,7 +208,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("MainActivity", "onCreate");
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
@@ -217,12 +215,6 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             undisturbedPath = savedInstanceState.getString("UNDISTURBED_PATH");
             sortOptionIndexSelected = savedInstanceState.getInt("SORT_OPTION");
             sortOrderIsAscending = savedInstanceState.getBoolean("SORT_IS_ASCENDING");
-//
-//            // TODO: do i need to get rid of savedInstanceState?
-//            savedInstanceState.remove("UNDISTURBED_PATH");
-//            savedInstanceState.remove("PATH");
-//            savedInstanceState.remove("SORT_OPTION");
-//            savedInstanceState.remove("SORT_IS_ASCENDING");
         }
 
         initializeSearchPath();
@@ -344,14 +336,9 @@ public class MainActivity extends AppCompatActivity implements ListFileFragment.
             case 1: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    Log.d("PERMISSON", "accepted");
-                    // permission granted!
-                    // TODO: fix this bug. This should be uncommented. Test the case when permissions are not granted
-                    // fireListFilesIntent();
+                    // Permissions accepted
                 } else {
-                    // TODO: permission denied ... quit app?
-                    Log.d("PERMISSON", "Permission denied");
+                    // Permissions denied
                 }
 
                 return;

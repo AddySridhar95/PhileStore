@@ -61,8 +61,6 @@ public class ListFileFragment extends ListFragment {
     {
         super.onAttach(c);
         mAct = c instanceof Activity ? (Activity) c : null;
-
-        Log.d("ListFileFragment", mAct == null ? "is null" : "not null");
     }
 
     private String getFileSizeText(File f) {
@@ -76,7 +74,6 @@ public class ListFileFragment extends ListFragment {
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        Log.d("ListFileFragment", "onActivityCreated");
         super.onActivityCreated(savedInstanceState);
 
         adapter = new ArrayAdapter<FileListItem>((MainActivity)mAct, R.layout.list_item, fileListItems) {
@@ -197,7 +194,6 @@ public class ListFileFragment extends ListFragment {
     }
 
     public void updateFileListItems() {
-        Log.d("this is the thing", fileListItemsBuffer.size() + "");
         fileListItems.clear();
         fileListItems.addAll(fileListItemsBuffer);
         adapter.notifyDataSetChanged();
@@ -311,9 +307,6 @@ public class ListFileFragment extends ListFragment {
             File clipboardFile = new File(clipboardFileItem.getFullPath());
             File targetFile = new File(parentPath + clipboardFileItem.getFileName());
 
-            Log.d("clipboardFile", clipboardFile.getAbsolutePath());
-            Log.d("targetFile", targetFile.getAbsolutePath());
-
             if (clipboardOperation.equals("move")) {
                 boolean status = renameFile(clipboardFile, targetFile);
 
@@ -388,9 +381,6 @@ public class ListFileFragment extends ListFragment {
             fileListItemsBuffer.add(fileListItem);
         }
 
-        Log.d("prepareFileIt", fileListItemsBuffer.size() + "");
-
-        // TODO: bug. sort should sort fileListItemsBuffer and not fileListItems ???
         sortFileListItems();
     }
 
@@ -458,7 +448,6 @@ public class ListFileFragment extends ListFragment {
             }
 
             String[] files = from.list(filter);
-            // Log.d("copyFilesOrDirectories", files.length + "");
             for(int i = 0; i < files.length; i++) {
 
                 // parentPath is the path of the directory the file in question is in.
@@ -471,11 +460,8 @@ public class ListFileFragment extends ListFragment {
                 // TODO error handling
 
             }
-
-            Log.d("copyFilesOrDirectories", "directory!!!!");
             return true;
         } else {
-            Log.d("copyFilesOrDirectories", "file!!!!");
             final File f = from;
             final File t = to;
 
@@ -483,7 +469,6 @@ public class ListFileFragment extends ListFragment {
                     ProgressBar progress_bar = (ProgressBar) getView().findViewById(R.id.progress_bar);
 
                     public void onPreExecute() {
-                        Log.d("async task b", "on pre execute");
                         if (progress_bar != null) {
                             progress_bar.setVisibility(View.VISIBLE);
                         }
