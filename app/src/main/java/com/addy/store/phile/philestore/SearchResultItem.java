@@ -1,4 +1,4 @@
-package com.example.store.phile.philestore;
+package com.addy.store.phile.philestore;
 
 /**
  * Created by adityasridhar on 16-09-18.

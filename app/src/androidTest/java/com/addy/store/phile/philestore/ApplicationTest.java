@@ -1,4 +1,4 @@
-package com.example.store.phile.philestore;
+package com.addy.store.phile.philestore;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

@@ -1,4 +1,4 @@
-package com.example.store.phile.philestore;
+package com.addy.store.phile.philestore;
 
 import android.Manifest;
 import android.app.SearchManager;
@@ -16,7 +16,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
